@@ -77,12 +77,13 @@ header #logo {
   margin-top: 3rem;
   border-bottom: 3px solid #1d9beb;
   font-family: "Roboto", serif;
-  font-weight: 300;
+  font-weight: 400;
   font-style: normal;
   font-size: 2rem;
   letter-spacing: 0.2rem;
   text-align: center;
   padding: 1rem 0;
+  opacity: 0.8;
 }
 
 #user-type {
@@ -122,7 +123,8 @@ header #logo {
 
 #key-row-one,
 #key-row-two,
-#key-row-three {
+#key-row-three,
+#key-row-four {
   isolation: isolate;
   display: flex;
   justify-content: center;
@@ -130,7 +132,7 @@ header #logo {
   margin-bottom: 1rem;
 }
 
-#key-row-three {
+#key-row-four {
   margin-bottom: 0;
 }
 
@@ -150,4 +152,38 @@ header #logo {
   border: 1px solid black;
   border-radius: 0.5rem;
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+li {
+  display: inline;
+}
+
+li.correct {
+  color: grey;
+}
+
+li.incorrect {
+  color: #d41313;
+}
+
+#cursor-container {
+  position: relative;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+#blink-cursor {
+  animation: blink 0.8s infinite;
+  position: absolute;
+  left: -5px;
 }
