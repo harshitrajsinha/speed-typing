@@ -3,3 +3,5 @@
 Test how fast you can type
 
 [Visit Site](https://harshitrajsinha.github.io/speed-typing/)
+
+- max-sentence-length: 16
