@@ -186,4 +186,5 @@ li.incorrect {
   animation: blink 0.8s infinite;
   position: absolute;
   left: -5px;
+  color: #0004f9;
 }
