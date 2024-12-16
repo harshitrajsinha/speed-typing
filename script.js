@@ -1,8 +1,39 @@
+/* TODO: 
+- format sentences from capital letters and special chars by using search algorithm
+- add abort controller
+- handle backspace
+- show WPM and accuracy
+- handle end game
+*/
+
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Script is loaded");
   document.querySelector("div#user-type input").focus();
 
-  const sentence = `type this line to find out how many words per minute or wpm you can type`;
+  let noTimesCalled = 0;
+
+  // Fetch quotes
+  async function fetchGist(gistId) {
+    const randomIndex = Math.floor(Math.random() * 100) + 1;
+    console.log(randomIndex);
+    try {
+      const response = await fetch(`https://api.github.com/gists/${gistId}`);
+
+      // If error in fetching data
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sentence: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      if (data) {
+        const quotesList = data["files"]["quotes.txt"]["content"];
+        return JSON.parse(quotesList)[randomIndex];
+      }
+    } catch (error) {
+      console.error("Error occured", error.message);
+      return null;
+    }
+  }
 
   // Formatting each letter into html element
   function formatLetter(letter, letterId) {
@@ -16,7 +47,30 @@ document.addEventListener("DOMContentLoaded", function () {
       .map((letter) => (letter !== " " ? letter : "&nbsp;"));
   }
 
-  function newGame() {
+  async function newGame() {
+    const gistId = "74e6aa84acb838ade097f146643bd6a9"; // 100 lower-case, non-special characters quotes
+    const fallbackSentence = `type this line to find out how many words per minute or wpm you can type`;
+
+    const quote = await fetchGist(gistId);
+    let sentence = ``;
+    if (quote) {
+      sentence = quote["quote"];
+      if (sentence.split("").length > 72) {
+        if (noTimesCalled < 4) {
+          console.log("entered here");
+          // reacall game
+          noTimesCalled += 1;
+          sentence = ``;
+          newGame();
+        } else {
+          sentence = fallbackSentence;
+          noTimesCalled = 0;
+        }
+      }
+    } else {
+      sentence = fallbackSentence;
+    }
+
     const letters = getLetters(sentence);
 
     //insert each letter into document
@@ -82,4 +136,4 @@ document.addEventListener("DOMContentLoaded", function () {
   newGame();
 });
 
-// handle backspace
+//https://gist.github.com/harshitrajsinha/74e6aa84acb838ade097f146643bd6a9
