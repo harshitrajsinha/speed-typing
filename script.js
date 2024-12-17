@@ -11,17 +11,17 @@ document.addEventListener("DOMContentLoaded", function () {
   let noTimesCalled = 0;
 
   // function to fetch quotes from github gist
-  async function fetchGist(gistId, token) {
+  async function fetchGist(gistId) {
     const randomIndex = Math.floor(Math.random() * 100) + 1;
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // setTimeout to abort the request after 10 seconds
       const response = await fetch(`https://api.github.com/gists/${gistId}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
+        // method: "GET",
+        // headers: {
+        //   Authorization: `Bearer ${token}`,
+        //   Accept: "application/vnd.github.v3+json",
+        // },
         signal: controller.signal,
       });
       //console.log(response);
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
   async function newGame() {
     startGame();
     const gistId = "74e6aa84acb838ade097f146643bd6a9";
-    const token = "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";
+    // const token = "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";
     const fallbackSentence = `type this line to find out how many words per minute or wpm you can type`;
 
     const quote = await fetchGist(gistId, token);
