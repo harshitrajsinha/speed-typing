@@ -1,6 +1,4 @@
 /* TODO: 
-- format sentences from capital letters and special chars by using search algorithm
-- add abort controller
 - handle backspace
 - show WPM and accuracy
 - handle end game
@@ -12,13 +10,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let noTimesCalled = 0;
 
-  // Fetch quotes
-  async function fetchGist(gistId) {
+  // function to fetch quotes from github gist
+  async function fetchGist(gistId, token) {
     const randomIndex = Math.floor(Math.random() * 100) + 1;
-    console.log(randomIndex);
     try {
-      const response = await fetch(`https://api.github.com/gists/${gistId}`);
-
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // setTimeout to abort the request after 10 seconds
+      const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+        signal: controller.signal,
+      });
+      //console.log(response);
       // If error in fetching data
       if (!response.ok) {
         throw new Error(`Failed to fetch sentence: ${response.statusText}`);
@@ -26,38 +32,99 @@ document.addEventListener("DOMContentLoaded", function () {
       const data = await response.json();
 
       if (data) {
+        clearTimeout(timeoutId); // If the request is successfull in given time
         const quotesList = data["files"]["quotes.txt"]["content"];
         return JSON.parse(quotesList)[randomIndex];
       }
     } catch (error) {
-      console.error("Error occured", error.message);
-      return null;
+      if (error.name === "AbortError") {
+        console.log("Request timed out");
+        return null;
+      } else {
+        console.error("Error occured", error.message);
+        return null;
+      }
     }
   }
 
-  // Formatting each letter into html element
-  function formatLetter(letter, letterId) {
+  // Formatting each character into html element
+  function formatCharacter(letter, letterId) {
     return `<li id=${letterId} class="letter ${letterId === 0 ? "current" : ""}">${letter}</li>`;
   }
 
-  // Split sentence into letters and space
-  function getLetters(sentence) {
+  // Split sentence into characters
+  function getChars(sentence) {
     return sentence
       .split("")
-      .map((letter) => (letter !== " " ? letter : "&nbsp;"));
+      .map((character) =>
+        character !== " " ? character.toLowerCase() : "&nbsp;"
+      )
+      .filter((character) => {
+        // filter out any special characters
+        const regex = /^[a-zA-Z]+$|^&nbsp;$/;
+        return regex.test(character);
+      });
   }
 
+  function startTimer(reloadElem, userInputField) {
+    let reloadElemMsg = reloadElem.textContent;
+    let count = 4;
+    setInterval(() => {
+      if (!count) {
+        if (userInputField) {
+          userInputField.value = "";
+        }
+        reloadElem.style.display = "none";
+        //newGame();
+
+        return;
+      }
+      count -= 1;
+      reloadElem.textContent = `${reloadElemMsg} ${count}`;
+    }, 1000);
+  }
+
+  // function once game is over
+  function gameOver() {
+    const userInputField = document.querySelector("div#user-type input");
+    const blinkCursor = document.getElementById("blink-cursor");
+    const reloadElem = document.getElementById("reload-message");
+    if (userInputField) {
+      userInputField.disabled = true;
+    }
+    if (blinkCursor) {
+      blinkCursor.style.display = "none";
+    }
+    if (reloadElem) {
+      reloadElem.style.display = "flex";
+      startTimer(reloadElem, userInputField);
+    }
+  }
+
+  function startGame() {
+    const testType = document.getElementById("test-type");
+    if (testType) {
+      const blinkCursor = testType.firstElementChild;
+      testType.innerHTML = null;
+      if (blinkCursor) {
+        testType.appendChild(blinkCursor);
+      }
+    }
+  }
+
+  // main function starts here
   async function newGame() {
-    const gistId = "74e6aa84acb838ade097f146643bd6a9"; // 100 lower-case, non-special characters quotes
+    startGame();
+    const gistId = "74e6aa84acb838ade097f146643bd6a9";
+    const token = "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";
     const fallbackSentence = `type this line to find out how many words per minute or wpm you can type`;
 
-    const quote = await fetchGist(gistId);
+    const quote = await fetchGist(gistId, token);
     let sentence = ``;
     if (quote) {
       sentence = quote["quote"];
       if (sentence.split("").length > 72) {
         if (noTimesCalled < 4) {
-          console.log("entered here");
           // reacall game
           noTimesCalled += 1;
           sentence = ``;
@@ -70,16 +137,14 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       sentence = fallbackSentence;
     }
-
-    const letters = getLetters(sentence);
-
-    //insert each letter into document
+    const letters = getChars(sentence);
+    //insert each letter into document as an li element
     const testPara = document.getElementById("test-type");
     if (testPara) {
       letters.forEach((letter, index) => {
-        testPara.innerHTML += formatLetter(letter, index);
+        testPara.innerHTML += formatCharacter(letter, index);
       });
-      testPara.innerHTML += `<li id=${-1} class="letter"></li>`;
+      //testPara.innerHTML += `<li id="last" class="letter"></li>`;
     }
 
     let currentLetter = document.querySelector("li.current");
@@ -109,22 +174,27 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!currentLetter.classList.contains("incorrect")) {
             currentLetter.classList.add("correct");
           }
-          currentLetter.nextSibling.classList.add("current");
-          currentLetter.classList.remove("current");
-          // re-initialize currentLetter
-          currentLetter = document.querySelector("li.current");
+          if (currentLetter.nextSibling) {
+            currentLetter.nextSibling.classList.add("current");
+            currentLetter.classList.remove("current");
+            // re-initialize currentLetter
+            currentLetter = document.querySelector("li.current");
 
-          // move cursor to next letter
-          cursor.style.left = `${
-            parseInt(currentLetter.getBoundingClientRect().left) -
-            initialCursorPos -
-            10
-          }px`;
+            // move cursor to next letter
+            cursor.style.left = `${
+              parseInt(currentLetter.getBoundingClientRect().left) -
+              initialCursorPos -
+              10
+            }px`;
 
-          // clear input field on space
-          if (isSpace) {
-            userInput.value = "";
-            isSpace = false;
+            // clear input field on space
+            if (isSpace) {
+              userInput.value = "";
+              isSpace = false;
+            }
+          } else {
+            gameOver();
+            return;
           }
         } else {
           currentLetter.classList.add("incorrect");
@@ -135,5 +205,3 @@ document.addEventListener("DOMContentLoaded", function () {
 
   newGame();
 });
-
-//https://gist.github.com/harshitrajsinha/74e6aa84acb838ade097f146643bd6a9
