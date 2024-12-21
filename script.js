@@ -1,7 +1,7 @@
 /* TODO: 
 - handle backspace
-- show WPM and accuracy
-- handle end game
+- resolve error on restart game
+- use cookies/localStorage to fetch token once from gist
 */
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -9,15 +9,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-type input");
+  const authorizedToken = null;
 
   // function to fetch quotes from github gist
   async function fetchSentence(gistId) {
+    const url = `https://api.github.com/gists/${gistId}`; //unauthenticated - 60 requests per hour; authenticated - 5000 requests per hour for a user
     const volumeOfAvailSentence = 100; // no of available sentence
     const randomIndex = Math.floor(Math.random() * volumeOfAvailSentence) + 1;
     try {
       const controller = new AbortController(); // Abort controller to timeout API request
       const timeoutId = setTimeout(() => controller.abort(), 5000); // abort the request after 5 seconds
-      const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+      const response = await fetch(url, {
         method: "GET",
         signal: controller.signal,
       });
@@ -43,6 +45,29 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // function to calc accuracy
+  function calculateAccuracy() {
+    const totalChars = document.querySelectorAll(
+      "#test-sentence .letter"
+    ).length;
+    const incorrectChars = document.querySelectorAll(
+      "#test-sentence .incorrect"
+    ).length;
+    return totalChars
+      ? Number(((totalChars - incorrectChars) / totalChars).toPrecision(3)) *
+          100
+      : 0;
+  }
+
+  // function to calc WPM
+  function calculateWPM(timeTaken) {
+    const wordsArr = Array.from(document.querySelectorAll(".letter"));
+    const totalWords = wordsArr
+      ? wordsArr.filter((elem) => elem.innerHTML === "&nbsp;").length + 1
+      : 0;
+    return Math.floor(60 / timeTaken) * totalWords;
+  }
+
   // functionality after game over
   function showReloadMsg() {
     const reloadElem = document.getElementById("reload-message");
@@ -66,7 +91,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // function once game is over
-  function gameOver() {
+  function gameOver(startTime, endTime) {
+    const timeTaken = Math.floor((endTime - startTime) / 1000);
     const blinkCursor = document.getElementById("blink-cursor");
     if (userInputField) {
       userInputField.disabled = true; // disable input field
@@ -74,6 +100,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (blinkCursor) {
       blinkCursor.style.display = "none"; // remove blink cursor
     }
+    document.getElementById("wpm-digit").textContent = String(
+      calculateWPM(timeTaken)
+    );
+    document.getElementById("acc-digit").textContent = String(
+      calculateAccuracy()
+    );
     showReloadMsg();
   }
 
@@ -110,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
       )
       .filter((character) => {
         // filter out any special characters
-        const regex = /^[a-zA-Z]+$|^&nbsp;$/;
+        const regex = /^[a-z]$|^&nbsp;$/; // a character can be lowercase letter or space
         return regex.test(character);
       });
   }
@@ -181,11 +213,18 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     let currentLetter = document.querySelector("li.current");
     let isValidSpace = false;
+    let isFirstCharTyped = false;
+    let startTime = 0;
 
     //get user input
     if (userInputField) {
       userInputField.addEventListener("input", function (e) {
         //console.log(e);
+
+        if (!isFirstCharTyped) {
+          startTime = new Date().getTime();
+          isFirstCharTyped = true;
+        }
 
         // checking if space character
         if (
@@ -215,7 +254,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
           } else {
             currentLetter = "";
-            gameOver();
+            let endTime = new Date().getTime();
+            gameOver(startTime, endTime);
           }
         } else {
           currentLetter.classList.add("incorrect");
