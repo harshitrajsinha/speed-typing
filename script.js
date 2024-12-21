@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let userInputField = document.querySelector("div#user-type input");
 
   // function to fetch quotes from github gist
-  async function fetchSentence(gistId, token) {
+  async function fetchSentence(gistId) {
     const volumeOfAvailSentence = 100; // no of available sentence
     const randomIndex = Math.floor(Math.random() * volumeOfAvailSentence) + 1;
     try {
@@ -19,10 +19,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const timeoutId = setTimeout(() => controller.abort(), 5000); // abort the request after 5 seconds
       const response = await fetch(`https://api.github.com/gists/${gistId}`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
         signal: controller.signal,
       });
       // If error in fetching data
@@ -146,13 +142,12 @@ document.addEventListener("DOMContentLoaded", function () {
     startGame();
     //return;
     const gistId = "74e6aa84acb838ade097f146643bd6a9";
-    const token = "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";
     const fallbackSentence = `type this line to find out how many words per minute or wpm you can type`;
     let sentence = ``;
     const testSentence = document.getElementById("test-sentence");
     const fragment = document.createDocumentFragment();
 
-    const quote = await fetchSentence(gistId, token); // fetch unique sentence
+    const quote = await fetchSentence(gistId); // fetch unique sentence
     if (quote) {
       sentence = quote["quote"];
       if (sentence.split("").length > 72) {
