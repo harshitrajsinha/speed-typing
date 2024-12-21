@@ -6,20 +6,25 @@
 
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Script is loaded");
-  document.querySelector("div#user-type input").focus();
 
-  let noTimesCalled = 0;
+  let noTimesCalled = 0; // no of times API request is made
+  let userInputField = document.querySelector("div#user-type input");
 
   // function to fetch quotes from github gist
-  async function fetchGist(gistId) {
-    const randomIndex = Math.floor(Math.random() * 100) + 1;
+  async function fetchSentence(gistId, token) {
+    const volumeOfAvailSentence = 100; // no of available sentence
+    const randomIndex = Math.floor(Math.random() * volumeOfAvailSentence) + 1;
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // setTimeout to abort the request after 10 seconds
+      const controller = new AbortController(); // Abort controller to timeout API request
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // abort the request after 5 seconds
       const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
         signal: controller.signal,
       });
-      //console.log(response);
       // If error in fetching data
       if (!response.ok) {
         throw new Error(`Failed to fetch sentence: ${response.statusText}`);
@@ -42,9 +47,62 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Formatting each character into html element
-  function formatCharacter(letter, letterId) {
-    return `<li id=${letterId} class="letter ${letterId === 0 ? "current" : ""}">${letter}</li>`;
+  // functionality after game over
+  function showReloadMsg() {
+    const reloadElem = document.getElementById("reload-message");
+    if (reloadElem) {
+      let count = 4;
+      let reloadElemMsg = reloadElem.textContent;
+      reloadElem.textContent = `${reloadElemMsg} ${count}`;
+      reloadElem.style.display = "flex";
+      const intervalId = setInterval(() => {
+        if (!count) {
+          reloadElem.style.display = "none";
+          reloadElem.textContent = reloadElemMsg; // reset reload message (without count)
+          clearInterval(intervalId);
+          newGame();
+          return;
+        }
+        count -= 1;
+        reloadElem.textContent = `${reloadElemMsg} ${count}`;
+      }, 1000);
+    }
+  }
+
+  // function once game is over
+  function gameOver() {
+    const blinkCursor = document.getElementById("blink-cursor");
+    if (userInputField) {
+      userInputField.disabled = true; // disable input field
+    }
+    if (blinkCursor) {
+      blinkCursor.style.display = "none"; // remove blink cursor
+    }
+    showReloadMsg();
+  }
+
+  // moving blink cursor to next character
+  function moveCursor(currentLetter, initialCursorPos) {
+    let cursor = document.getElementById("blink-cursor");
+    if (cursor) {
+      cursor.style.left = `${
+        parseInt(currentLetter.getBoundingClientRect().left) -
+        initialCursorPos -
+        10
+      }px`;
+    }
+  }
+
+  // Adding each character into html element
+  function addCharacter(letter, letterId) {
+    const elem = document.createElement("li");
+    elem.id = letterId;
+    elem.classList.add("letter");
+    if (!letterId) {
+      elem.classList.add("current");
+    }
+    elem.innerHTML = letter;
+    return elem;
   }
 
   // Split sentence into characters
@@ -61,48 +119,24 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  function startTimer(reloadElem, userInputField) {
-    let reloadElemMsg = reloadElem.textContent;
-    let count = 4;
-    setInterval(() => {
-      if (!count) {
-        if (userInputField) {
-          userInputField.value = "";
-        }
-        reloadElem.style.display = "none";
-        //newGame();
-
-        return;
-      }
-      count -= 1;
-      reloadElem.textContent = `${reloadElemMsg} ${count}`;
-    }, 1000);
-  }
-
-  // function once game is over
-  function gameOver() {
-    const userInputField = document.querySelector("div#user-type input");
-    const blinkCursor = document.getElementById("blink-cursor");
-    const reloadElem = document.getElementById("reload-message");
-    if (userInputField) {
-      userInputField.disabled = true;
-    }
-    if (blinkCursor) {
-      blinkCursor.style.display = "none";
-    }
-    if (reloadElem) {
-      reloadElem.style.display = "flex";
-      startTimer(reloadElem, userInputField);
-    }
-  }
-
+  // starting game by clearing test sentence except blink cursor
   function startGame() {
-    const testType = document.getElementById("test-type");
-    if (testType) {
-      const blinkCursor = testType.firstElementChild;
-      testType.innerHTML = null;
-      if (blinkCursor) {
-        testType.appendChild(blinkCursor);
+    if (userInputField) {
+      userInputField.disabled = false;
+      userInputField.value = null;
+      userInputField.focus();
+    }
+    const testSentence = document.getElementById("test-sentence");
+    if (testSentence) {
+      const cursorContainer = testSentence.firstElementChild; // get blink cursor element
+      while (testSentence.firstChild) {
+        // clear if sentence already exists
+        testSentence.removeChild(testSentence.firstChild);
+      }
+      if (cursorContainer) {
+        testSentence.appendChild(cursorContainer);
+        cursorContainer.firstElementChild.style.display = "inline";
+        cursorContainer.firstElementChild.style.left = "-5px";
       }
     }
   }
@@ -110,11 +144,15 @@ document.addEventListener("DOMContentLoaded", function () {
   // main function starts here
   async function newGame() {
     startGame();
+    //return;
     const gistId = "74e6aa84acb838ade097f146643bd6a9";
+    const token = "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";
     const fallbackSentence = `type this line to find out how many words per minute or wpm you can type`;
-
-    const quote = await fetchGist(gistId, token);
     let sentence = ``;
+    const testSentence = document.getElementById("test-sentence");
+    const fragment = document.createDocumentFragment();
+
+    const quote = await fetchSentence(gistId, token); // fetch unique sentence
     if (quote) {
       sentence = quote["quote"];
       if (sentence.split("").length > 72) {
@@ -131,64 +169,58 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       sentence = fallbackSentence;
     }
+
+    // extracting array of valid chars from sentence
     const letters = getChars(sentence);
-    //insert each letter into document as an li element
-    const testPara = document.getElementById("test-type");
-    if (testPara) {
+
+    //insert each char into document within li element
+    if (testSentence) {
       letters.forEach((letter, index) => {
-        testPara.innerHTML += formatCharacter(letter, index);
+        fragment.appendChild(addCharacter(letter, index));
       });
-      //testPara.innerHTML += `<li id="last" class="letter"></li>`;
+      testSentence.appendChild(fragment);
     }
 
+    const initialCursorPos = parseInt(
+      document.getElementById("blink-cursor").getBoundingClientRect().left
+    );
     let currentLetter = document.querySelector("li.current");
-    let cursor = document.getElementById("blink-cursor");
-    const initialCursorPos = parseInt(cursor.getBoundingClientRect().left);
-    let isSpace = false;
+    let isValidSpace = false;
 
     //get user input
-    const userInput = document.querySelector("div#user-type input");
-    if (userInput) {
-      userInput.addEventListener("input", function (e) {
-        // console.log(e);
+    if (userInputField) {
+      userInputField.addEventListener("input", function (e) {
+        //console.log(e);
 
-        // Handling space character
+        // checking if space character
         if (
-          e.data.charCodeAt(0) === 32 &&
-          currentLetter.textContent.charCodeAt(0) === 160
+          e.data &&
+          e.data.charCodeAt(0) === 32 && // space charcter code
+          currentLetter.textContent.charCodeAt(0) === 160 // nbsp charcter code
         ) {
-          isSpace = true;
+          isValidSpace = true;
         }
 
-        if (
-          e.data === currentLetter.textContent ||
-          (e.data.charCodeAt(0) === 32 &&
-            currentLetter.textContent.charCodeAt(0) === 160)
-        ) {
+        if (e.data === currentLetter.textContent || isValidSpace) {
           if (!currentLetter.classList.contains("incorrect")) {
             currentLetter.classList.add("correct");
           }
           if (currentLetter.nextSibling) {
-            currentLetter.nextSibling.classList.add("current");
             currentLetter.classList.remove("current");
-            // re-initialize currentLetter
-            currentLetter = document.querySelector("li.current");
+            currentLetter.nextSibling.classList.add("current");
+            currentLetter = document.querySelector("li.current"); // re-initialize currentLetter
 
             // move cursor to next letter
-            cursor.style.left = `${
-              parseInt(currentLetter.getBoundingClientRect().left) -
-              initialCursorPos -
-              10
-            }px`;
+            moveCursor(currentLetter, initialCursorPos);
 
             // clear input field on space
-            if (isSpace) {
-              userInput.value = "";
-              isSpace = false;
+            if (isValidSpace) {
+              userInputField.value = "";
+              isValidSpace = false;
             }
           } else {
+            currentLetter = "";
             gameOver();
-            return;
           }
         } else {
           currentLetter.classList.add("incorrect");

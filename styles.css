@@ -73,7 +73,7 @@ header #logo {
   font-size: 3rem;
 }
 
-#test-type {
+#test-sentence {
   margin-top: 3rem;
   border-bottom: 3px solid #1d9beb;
   font-family: "Roboto", serif;
@@ -185,7 +185,6 @@ li.incorrect {
 #blink-cursor {
   animation: blink 0.8s infinite;
   position: absolute;
-  left: -5px;
   color: #0004f9;
 }
 
