@@ -10,3 +10,8 @@ Test how fast you can type
 
 - Randomize meaning full quotes on reload
 - Format sentence based on toggle.
+
+# JS concepts -
+
+- AbortController for aborting fetch request
+- fetch() to get list of sentences
