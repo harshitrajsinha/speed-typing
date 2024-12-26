@@ -207,3 +207,31 @@ li.incorrect {
   font-size: 1.2rem;
   display: none;
 }
+
+@media screen and (max-width: 540px) {
+  body {
+    padding: 1rem 0.5rem 0.5rem 1rem;
+  }
+  header #logo {
+    font-size: 6vw;
+  }
+  #reload-message {
+    font-size: 2vw;
+  }
+  .wpm-container {
+    font-size: 2vw;
+  }
+  #wpm-digit {
+    font-size: 4vw;
+  }
+  .accuracy-container {
+    font-size: 2vw;
+  }
+  #acc-digit {
+    font-size: 4vw;
+  }
+
+  #container {
+    display: none;
+  }
+}
