@@ -54,8 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "#test-sentence .incorrect"
     ).length;
     return totalChars
-      ? Number(((totalChars - incorrectChars) / totalChars).toPrecision(3)) *
-          100
+      ? (((totalChars - incorrectChars) / totalChars) * 100).toPrecision(3)
       : 0;
   }
 
@@ -76,6 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
       let reloadElemMsg = reloadElem.textContent;
       reloadElem.textContent = `${reloadElemMsg} ${count}`;
       reloadElem.style.display = "flex";
+      reloadElem.style.justifyContent = "center";
       const intervalId = setInterval(() => {
         if (!count) {
           reloadElem.style.display = "none";
@@ -103,9 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("wpm-digit").textContent = String(
       calculateWPM(timeTaken)
     );
-    document.getElementById("acc-digit").textContent = String(
-      calculateAccuracy()
-    );
+    document.getElementById("acc-digit").textContent = calculateAccuracy();
     showReloadMsg();
   }
 

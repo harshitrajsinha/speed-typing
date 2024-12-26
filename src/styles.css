@@ -20,6 +20,7 @@ main {
 header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 header #logo {
@@ -204,34 +205,109 @@ li.incorrect {
   animation: blink 0.6s infinite;
   align-items: center;
   color: red;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   display: none;
+}
+
+@media screen and (min-width: 541px) and (max-width: 1024px) {
+  body {
+    padding: 3rem 3rem 3rem 3rem;
+  }
+  header {
+    position: relative;
+    align-items: center;
+  }
+  header #logo {
+    font-size: 7vw;
+  }
+  #reload-message {
+    font-size: 3vw;
+    position: absolute;
+    bottom: -10vw;
+    width: 100%;
+    text-align: center;
+  }
+  .wpm-container {
+    font-size: 3vw;
+  }
+  #wpm-digit {
+    font-size: 6vw;
+  }
+  .accuracy-container {
+    font-size: 3vw;
+  }
+  #acc-digit {
+    font-size: 6vw;
+  }
+  #container {
+    margin-top: 15vw;
+  }
+
+  #test-sentence {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    line-height: 3rem;
+  }
+
+  #cursor-container {
+    display: none;
+  }
+
+  #keyboard {
+    display: none;
+  }
 }
 
 @media screen and (max-width: 540px) {
   body {
     padding: 1rem 0.5rem 0.5rem 1rem;
   }
+  header {
+    position: relative;
+    align-items: center;
+  }
   header #logo {
-    font-size: 6vw;
+    font-size: 8vw;
   }
   #reload-message {
-    font-size: 2vw;
+    font-size: 4vw;
+    position: absolute;
+    bottom: -8vw;
+    width: 100%;
+    text-align: center;
   }
   .wpm-container {
-    font-size: 2vw;
+    font-size: 4vw;
   }
   #wpm-digit {
-    font-size: 4vw;
+    font-size: 8vw;
   }
   .accuracy-container {
-    font-size: 2vw;
-  }
-  #acc-digit {
     font-size: 4vw;
   }
+  #acc-digit {
+    font-size: 8vw;
+  }
 
-  #container {
+  #container #test-sentence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    font-size: 5vw;
+    line-height: 2rem;
+  }
+
+  #container #keyboard {
+    display: none;
+  }
+
+  #user-type input {
+    font-size: 6vw;
+  }
+
+  #cursor-container {
     display: none;
   }
 }
