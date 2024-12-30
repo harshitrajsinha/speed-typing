@@ -88,7 +88,7 @@ header #logo {
 }
 
 #user-type {
-  margin-top: 3rem;
+  margin-top: 2rem;
   display: flex;
   justify-content: center;
 }
@@ -106,10 +106,68 @@ header #logo {
   text-align: center;
 }
 
+#toggling {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  position: absolute;
+  bottom: 3%;
+  right: 2rem;
+  font-size: 1.2rem;
+}
+
+.switch-char,
+.switch-sound {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 4vw;
+  height: 2.1vw;
+  margin-left: 0.5rem;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: rgb(204, 204, 204);
+  border-radius: 5rem;
+  width: 100%;
+  height: 100%;
+  transition: background-color 0.3s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 1.8vw;
+  width: 1.8vw;
+  left: 0.2rem;
+  top: 0.2rem;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-switch input:checked + .slider {
+  background: linear-gradient(to right, #7a90ff 47%, #1f23ff 100%);
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(1.8vw);
+}
+
 #keyboard {
   margin: 3rem auto 0 auto;
   width: 60%;
-  padding: 3rem;
+  padding: 1rem;
   position: relative;
 }
 
@@ -122,37 +180,42 @@ header #logo {
   opacity: 0.5;
 }
 
+#key-row-char,
 #key-row-one,
 #key-row-two,
 #key-row-three,
-#key-row-four {
+#key-row-space {
   isolation: isolate;
   display: flex;
   justify-content: center;
   gap: 0.8rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
-#key-row-four {
+#key-row-space {
   margin-bottom: 0;
 }
 
+.shift-key {
+  padding: 0 3rem;
+}
+
+#space-key {
+  padding: 0 10rem;
+}
+
 .key {
-  font-family: "Libre Bodoni", serif;
-  font-optical-sizing: auto;
-  font-weight: 700;
-  font-style: normal;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 3.8rem;
-  height: 3.8rem;
+  width: 3.2rem;
+  height: 3.2rem;
   background-color: white;
   border: 1px solid black;
   border-radius: 0.5rem;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+  /* box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25); */
 }
 
 li {

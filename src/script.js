@@ -1,25 +1,55 @@
 /* TODO: 
 - handle backspace
-- resolve error on restart game
 - use cookies/localStorage to fetch token once from gist
 */
 
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Script is loaded");
 
+  const FB_SENTENCE = `type this line to find out how many words per minute or wpm you can type`; // fallback sentence in case quotes is not fetched
+  const GIST_ID = "74e6aa84acb838ade097f146643bd6a9";
+  const API_URL = `https://api.github.com/gists/${GIST_ID}`; //unauthenticated - 60 requests per hour; authenticated - 5000 requests per hour for a user
+
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-type input");
-  const authorizedToken = null;
+  let testSentence = document.getElementById("test-sentence");
+  let isCharAllowed = true;
+  let isFirstCharTyped;
+  let startTime, initialCursorPos, endTime;
+
+  let audio = document.getElementById("startSound");
+
+  // functionality for toggle switch
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach((checkbox) => {
+    checkbox.addEventListener("change", function (event) {
+      const targetElem = event.target;
+      if (targetElem.id === "input-char") {
+        //document.querySelector("li.current").textContent = "";
+        isCharAllowed = !isCharAllowed;
+        newGame();
+      } else if (targetElem.id === "input-sound") {
+        targetElem.checked ? audio.play() : audio.pause();
+      }
+    });
+  });
+
+  // functionality for pause audio on tab/window change
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      document.getElementById("input-sound").checked = false;
+      audio.pause();
+    }
+  });
 
   // function to fetch quotes from github gist
-  async function fetchSentence(gistId) {
-    const url = `https://api.github.com/gists/${gistId}`; //unauthenticated - 60 requests per hour; authenticated - 5000 requests per hour for a user
+  async function fetchSentence() {
     const volumeOfAvailSentence = 100; // no of available sentence
     const randomIndex = Math.floor(Math.random() * volumeOfAvailSentence) + 1;
     try {
       const controller = new AbortController(); // Abort controller to timeout API request
       const timeoutId = setTimeout(() => controller.abort(), 5000); // abort the request after 5 seconds
-      const response = await fetch(url, {
+      const response = await fetch(API_URL, {
         method: "GET",
         signal: controller.signal,
       });
@@ -92,6 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // function once game is over
   function gameOver(startTime, endTime) {
+    userInputField.removeEventListener("input", handleUserInput);
     const timeTaken = Math.floor((endTime - startTime) / 1000);
     const blinkCursor = document.getElementById("blink-cursor");
     if (userInputField) {
@@ -139,28 +170,76 @@ document.addEventListener("DOMContentLoaded", function () {
         character !== " " ? character.toLowerCase() : "&nbsp;"
       )
       .filter((character) => {
-        // filter out any special characters
-        const regex = /^[a-z]$|^&nbsp;$/; // a character can be lowercase letter or space
-        return regex.test(character);
+        if (!isCharAllowed) {
+          // filter out any special characters
+          const regex = /^[a-z]$|^&nbsp;$/; // a character can be lowercase letter or space
+          return regex.test(character);
+        } else {
+          return character;
+        }
       });
+  }
+
+  function handleUserInput(e) {
+    let isValidSpace = false;
+    let currentLetter = document.querySelector("li.current");
+    if (!isFirstCharTyped) {
+      startTime = new Date().getTime(); // start timer
+      isFirstCharTyped = true;
+    }
+
+    // checking if space character
+    if (
+      e.data &&
+      e.data.charCodeAt(0) === 32 && // space key charcter code
+      currentLetter.textContent.charCodeAt(0) === 160 // nbsp charcter code
+    ) {
+      isValidSpace = true;
+    }
+
+    if (e.data === currentLetter.textContent || isValidSpace) {
+      if (!currentLetter.classList.contains("incorrect")) {
+        currentLetter.classList.add("correct");
+      }
+      if (currentLetter.nextSibling) {
+        currentLetter.classList.remove("current");
+        currentLetter.nextSibling.classList.add("current");
+        currentLetter = document.querySelector("li.current"); // re-initialize currentLetter
+
+        // move cursor to next letter
+        moveCursor(currentLetter, initialCursorPos);
+
+        // clear input field on space
+        if (isValidSpace) {
+          userInputField.value = "";
+          isValidSpace = false;
+        }
+      } else {
+        currentLetter.classList.remove("current");
+        currentLetter = null;
+        endTime = new Date().getTime();
+        gameOver(startTime, endTime);
+      }
+    } else {
+      currentLetter.classList.add("incorrect");
+    }
   }
 
   // starting game by clearing test sentence except blink cursor
   function startGame() {
+    isFirstCharTyped = false;
+    (startTime = 0), (initialCursorPos = 0), (endTime = 0);
     if (userInputField) {
       userInputField.disabled = false;
       userInputField.value = null;
       userInputField.focus();
     }
-    const testSentence = document.getElementById("test-sentence");
+
     if (testSentence) {
-      const cursorContainer = testSentence.firstElementChild; // get blink cursor element
-      while (testSentence.firstChild) {
-        // clear if sentence already exists
-        testSentence.removeChild(testSentence.firstChild);
-      }
+      const cursorContainer = testSentence.firstElementChild; // copy an instance of blink cursor element
+      testSentence.replaceChildren(); // clear if sentence already exists
       if (cursorContainer) {
-        testSentence.appendChild(cursorContainer);
+        testSentence.appendChild(cursorContainer); // add blink cursor element
         cursorContainer.firstElementChild.style.display = "inline";
         cursorContainer.firstElementChild.style.left = "-5px";
       }
@@ -170,34 +249,30 @@ document.addEventListener("DOMContentLoaded", function () {
   // main function starts here
   async function newGame() {
     startGame();
-    //return;
-    const gistId = "74e6aa84acb838ade097f146643bd6a9";
-    const fallbackSentence = `type this line to find out how many words per minute or wpm you can type`;
-    let sentence = ``;
-    const testSentence = document.getElementById("test-sentence");
+    let sentence;
     const fragment = document.createDocumentFragment();
 
-    const quote = await fetchSentence(gistId); // fetch unique sentence
+    // Get sentence
+    const quote = await fetchSentence(); // fetch unique sentence
     if (quote) {
       sentence = quote["quote"];
       if (sentence.split("").length > 72) {
         if (noTimesCalled < 4) {
           // reacall game
           noTimesCalled += 1;
-          sentence = ``;
+          sentence = "";
           newGame();
         } else {
-          sentence = fallbackSentence;
+          sentence = FB_SENTENCE;
           noTimesCalled = 0;
         }
       }
     } else {
-      sentence = fallbackSentence;
+      sentence = FB_SENTENCE;
     }
 
-    // extracting array of valid chars from sentence
+    // extract array of valid chars from sentence
     const letters = getChars(sentence);
-
     //insert each char into document within li element
     if (testSentence) {
       letters.forEach((letter, index) => {
@@ -206,59 +281,16 @@ document.addEventListener("DOMContentLoaded", function () {
       testSentence.appendChild(fragment);
     }
 
-    const initialCursorPos = parseInt(
+    // initialize cursor position
+    initialCursorPos = parseInt(
       document.getElementById("blink-cursor").getBoundingClientRect().left
     );
-    let currentLetter = document.querySelector("li.current");
-    let isValidSpace = false;
-    let isFirstCharTyped = false;
-    let startTime = 0;
 
     //get user input
     if (userInputField) {
-      userInputField.addEventListener("input", function (e) {
-        //console.log(e);
-
-        if (!isFirstCharTyped) {
-          startTime = new Date().getTime();
-          isFirstCharTyped = true;
-        }
-
-        // checking if space character
-        if (
-          e.data &&
-          e.data.charCodeAt(0) === 32 && // space charcter code
-          currentLetter.textContent.charCodeAt(0) === 160 // nbsp charcter code
-        ) {
-          isValidSpace = true;
-        }
-
-        if (e.data === currentLetter.textContent || isValidSpace) {
-          if (!currentLetter.classList.contains("incorrect")) {
-            currentLetter.classList.add("correct");
-          }
-          if (currentLetter.nextSibling) {
-            currentLetter.classList.remove("current");
-            currentLetter.nextSibling.classList.add("current");
-            currentLetter = document.querySelector("li.current"); // re-initialize currentLetter
-
-            // move cursor to next letter
-            moveCursor(currentLetter, initialCursorPos);
-
-            // clear input field on space
-            if (isValidSpace) {
-              userInputField.value = "";
-              isValidSpace = false;
-            }
-          } else {
-            currentLetter = "";
-            let endTime = new Date().getTime();
-            gameOver(startTime, endTime);
-          }
-        } else {
-          currentLetter.classList.add("incorrect");
-        }
-      });
+      userInputField.addEventListener("input", handleUserInput);
+    } else {
+      console.log("userInputField is null");
     }
   }
 
