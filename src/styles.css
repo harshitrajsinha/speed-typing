@@ -164,7 +164,65 @@ header #logo {
   transform: translateX(1.8vw);
 }
 
-#keyboard {
+#toggling {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  position: absolute;
+  bottom: 3%;
+  right: 2rem;
+  font-size: 1.2rem;
+}
+
+.switch-char,
+.switch-sound {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 4vw;
+  height: 2.1vw;
+  margin-left: 0.5rem;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: rgb(204, 204, 204);
+  border-radius: 5rem;
+  width: 100%;
+  height: 100%;
+  transition: background-color 0.3s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 1.8vw;
+  width: 1.8vw;
+  left: 0.2rem;
+  top: 0.2rem;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-switch input:checked + .slider {
+  background: linear-gradient(to right, #7a90ff 47%, #1f23ff 100%);
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(1.8vw);
+}
+
+/* #keyboard {
   margin: 3rem auto 0 auto;
   width: 60%;
   padding: 1rem;
@@ -178,10 +236,9 @@ header #logo {
   position: absolute;
   inset: 0;
   opacity: 0.5;
-}
+} */
 
-#key-row-char,
-#key-row-one,
+/* #key-row-one,
 #key-row-two,
 #key-row-three,
 #key-row-space {
@@ -215,8 +272,8 @@ header #logo {
   background-color: white;
   border: 1px solid black;
   border-radius: 0.5rem;
-  /* box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25); */
-}
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+} */
 
 li {
   display: inline;
@@ -270,6 +327,22 @@ li.incorrect {
   color: red;
   font-size: 1.5rem;
   display: none;
+}
+
+@media screen and (min-width: 1025px) and (max-width: 1365px) {
+  #container #test-sentence {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Roboto", serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1.7rem;
+    letter-spacing: 0.2rem;
+  }
+  #blink-cursor {
+    top: -14px;
+  }
 }
 
 @media screen and (min-width: 541px) and (max-width: 1024px) {

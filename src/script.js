@@ -7,8 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("Script is loaded");
 
   const FB_SENTENCE = `type this line to find out how many words per minute or wpm you can type`; // fallback sentence in case quotes is not fetched
-  const GIST_ID = "74e6aa84acb838ade097f146643bd6a9";
-  const API_URL = `https://api.github.com/gists`; //unauthenticated - 60 requests per hour; authenticated - 5000 requests per hour for a user
+  const API_URL = `https://api.github.com/gists`;
 
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-type input");
@@ -16,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let isCharAllowed = true;
   let isFirstCharTyped;
   let startTime, initialCursorPos, endTime;
+  let isAborted = false;
 
   let audio = document.getElementById("startSound");
 
@@ -24,17 +24,18 @@ document.addEventListener("DOMContentLoaded", function () {
   checkboxes.forEach((checkbox) => {
     checkbox.addEventListener("change", function (event) {
       const targetElem = event.target;
+      console.log(targetElem);
       if (targetElem.id === "input-char") {
-        //document.querySelector("li.current").textContent = "";
         isCharAllowed = !isCharAllowed;
         newGame();
       } else if (targetElem.id === "input-sound") {
+        console.log("here");
         targetElem.checked ? audio.play() : audio.pause();
       }
     });
   });
 
-  // functionality for pause audio on tab/window change
+  // functionality to pause audio on tab/window change
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       document.getElementById("input-sound").checked = false;
@@ -57,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            url: "https://api.github.com/gists",
+            url: API_URL,
           }),
           signal: controller.signal,
         }
@@ -120,6 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
           reloadElem.style.display = "none";
           reloadElem.textContent = reloadElemMsg; // reset reload message (without count)
           clearInterval(intervalId);
+          abortGame();
           newGame();
           return;
         }
@@ -255,8 +257,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // function to abort game
+  function abortGame() {
+    isAborted = true;
+  }
+
   // main function starts here
   async function newGame() {
+    isAborted = false;
     startGame();
     let sentence;
     const fragment = document.createDocumentFragment();
@@ -270,6 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
           // reacall game
           noTimesCalled += 1;
           sentence = "";
+          abortGame();
           newGame();
         } else {
           sentence = FB_SENTENCE;
@@ -296,10 +305,14 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
     //get user input
-    if (userInputField) {
-      userInputField.addEventListener("input", handleUserInput);
+    if (!isAborted) {
+      if (userInputField) {
+        userInputField.addEventListener("input", handleUserInput);
+      } else {
+        console.log("userInputField is null");
+      }
     } else {
-      console.log("userInputField is null");
+      console.log("Game is aborted");
     }
   }
 
