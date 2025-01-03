@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", function () {
         isCharAllowed = !isCharAllowed;
         newGame();
       } else if (targetElem.id === "input-sound") {
-        console.log("here");
         targetElem.checked ? audio.play() : audio.pause();
       }
     });
