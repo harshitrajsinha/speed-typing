@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const FB_SENTENCE = `type this line to find out how many words per minute or wpm you can type`; // fallback sentence in case quotes is not fetched
   const GIST_ID = "74e6aa84acb838ade097f146643bd6a9";
-  const API_URL = `https://api.github.com/gists/${GIST_ID}`; //unauthenticated - 60 requests per hour; authenticated - 5000 requests per hour for a user
+  const API_URL = `https://api.github.com/gists`; //unauthenticated - 60 requests per hour; authenticated - 5000 requests per hour for a user
 
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-type input");
@@ -49,10 +49,20 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       const controller = new AbortController(); // Abort controller to timeout API request
       const timeoutId = setTimeout(() => controller.abort(), 5000); // abort the request after 5 seconds
-      const response = await fetch(API_URL, {
-        method: "GET",
-        signal: controller.signal,
-      });
+      const response = await fetch(
+        "https://my-server-raj-sinha.vercel.app/api/v1/github/quotes",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: "https://api.github.com/gists",
+          }),
+          signal: controller.signal,
+        }
+      );
+
       // If error in fetching data
       if (!response.ok) {
         throw new Error(`Failed to fetch sentence: ${response.statusText}`);
@@ -61,8 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (data) {
         clearTimeout(timeoutId); // If the request is successfull in given time
-        const quotesList = data["files"]["quotes.txt"]["content"];
-        return JSON.parse(quotesList)[randomIndex];
+        return JSON.parse(data.quotes)[randomIndex];
       }
     } catch (error) {
       if (error.name === "AbortError") {
