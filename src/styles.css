@@ -173,7 +173,23 @@ header #logo {
   background-color: rgb(174, 172, 172);
 }
 
-/* #keyboard {
+@keyframes keyBlink {
+  0% {
+    background-color: white;
+  }
+  50% {
+    background-color: #a3ffa3;
+  }
+  100% {
+    background-color: white;
+  }
+}
+
+.key.active {
+  animation: keyBlink 0.8s infinite;
+}
+
+#keyboard {
   margin: 3rem auto 0 auto;
   width: 60%;
   padding: 1rem;
@@ -187,9 +203,9 @@ header #logo {
   position: absolute;
   inset: 0;
   opacity: 0.5;
-} */
+}
 
-/* #key-row-one,
+#key-row-one,
 #key-row-two,
 #key-row-three,
 #key-row-space {
@@ -208,7 +224,7 @@ header #logo {
   padding: 0 3rem;
 }
 
-#space-key {
+#space {
   padding: 0 10rem;
 }
 
@@ -220,11 +236,11 @@ header #logo {
   align-items: center;
   width: 3.2rem;
   height: 3.2rem;
-  background-color: white;
+  background-color: white; /*#a3ffa3*/
   border: 1px solid black;
   border-radius: 0.5rem;
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
-} */
+}
 
 li {
   display: inline;
@@ -258,18 +274,6 @@ li.incorrect {
   animation: blink 0.8s infinite;
   position: absolute;
   color: #0004f9;
-}
-
-@keyframes blink {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
 }
 
 #reload-message {

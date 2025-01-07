@@ -1,8 +1,3 @@
-/* TODO: 
-- handle backspace
-- use cookies/localStorage to fetch token once from gist
-*/
-
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Script is loaded");
 
@@ -232,7 +227,48 @@ document.addEventListener("DOMContentLoaded", function () {
       isValidSpace = true;
     }
 
-    if (e.data === currentLetter.textContent || isValidSpace) {
+    if (
+      e.data === currentLetter.textContent ||
+      isValidSpace ||
+      (e.data === "'" &&
+        (currentLetter.textContent === "’" ||
+          currentLetter.textContent === "'"))
+    ) {
+      let prevLetterText = currentLetter.innerHTML;
+      switch (prevLetterText) {
+        case "&nbsp;":
+          prevLetterText = "space";
+          break;
+        case ":":
+          prevLetterText = "apos";
+          break;
+        case '"':
+          prevLetterText = "dbqt";
+          break;
+        case ";":
+          prevLetterText = "smcln";
+          break;
+        case "'":
+          prevLetterText = "snqt";
+          break;
+        case "’":
+          prevLetterText = "snqt";
+          break;
+        case ",":
+          prevLetterText = "comma";
+          break;
+        case ".":
+          prevLetterText = "fstp";
+          break;
+        case "/":
+          prevLetterText = "fdsh";
+          break;
+        case "?":
+          prevLetterText = "qmrk";
+          break;
+        default:
+          break;
+      }
       if (!currentLetter.classList.contains("incorrect")) {
         currentLetter.classList.add("correct");
       }
@@ -240,6 +276,59 @@ document.addEventListener("DOMContentLoaded", function () {
         currentLetter.classList.remove("current");
         currentLetter.nextSibling.classList.add("current");
         currentLetter = document.querySelector("li.current"); // re-initialize currentLetter
+        let currentLetterText = currentLetter.innerHTML;
+        switch (currentLetterText) {
+          case "&nbsp;":
+            currentLetterText = "space";
+            break;
+          case ":":
+            currentLetterText = "apos";
+            break;
+          case '"':
+            currentLetterText = "dbqt";
+            break;
+          case ";":
+            currentLetterText = "smcln";
+            break;
+          case "'":
+            currentLetterText = "snqt";
+            break;
+          case "’":
+            currentLetterText = "snqt";
+            break;
+          case ",":
+            currentLetterText = "comma";
+            break;
+          case ".":
+            currentLetterText = "fstp";
+            break;
+          case "/":
+            currentLetterText = "fdsh";
+            break;
+          case "?":
+            currentLetterText = "qmrk";
+            break;
+          default:
+            break;
+        }
+        let keyToHighlight = document
+          .getElementById("keyboard")
+          .querySelector(`#${currentLetterText}`);
+        if (keyToHighlight) {
+          let keyToRmvHighlight = document
+            .getElementById("keyboard")
+            .querySelector(`#${prevLetterText}`);
+          if (keyToRmvHighlight.nodeName === "SPAN") {
+            keyToRmvHighlight = keyToRmvHighlight.parentElement;
+          }
+          if (keyToRmvHighlight.classList.contains("active")) {
+            keyToRmvHighlight.classList.remove("active");
+          }
+          if (keyToHighlight.nodeName === "SPAN") {
+            keyToHighlight = keyToHighlight.parentElement;
+          }
+          keyToHighlight.classList.add("active");
+        }
 
         // move cursor to next letter
         moveCursor(currentLetter, initialCursorPos);
@@ -250,6 +339,15 @@ document.addEventListener("DOMContentLoaded", function () {
           isValidSpace = false;
         }
       } else {
+        let keyToRmvHighlight = document
+          .getElementById("keyboard")
+          .querySelector(`#${prevLetterText}`);
+        if (keyToRmvHighlight.nodeName === "SPAN") {
+          keyToRmvHighlight = keyToRmvHighlight.parentElement;
+        }
+        if (keyToRmvHighlight.classList.contains("active")) {
+          keyToRmvHighlight.classList.remove("active");
+        }
         currentLetter.classList.remove("current");
         currentLetter = null;
         endTime = new Date().getTime();
@@ -332,6 +430,52 @@ document.addEventListener("DOMContentLoaded", function () {
         fragment.appendChild(addCharacter(letter, index));
       });
       testSentence.appendChild(fragment);
+    }
+
+    let currentLetter = document.querySelector("li.current");
+    let currentLetterText = currentLetter.innerHTML;
+    switch (currentLetterText) {
+      case "&nbsp;":
+        currentLetterText = "space";
+        break;
+      case ":":
+        currentLetterText = "apos";
+        break;
+      case '"':
+        currentLetterText = "dbqt";
+        break;
+      case ";":
+        currentLetterText = "smcln";
+        break;
+      case "'":
+        currentLetterText = "snqt";
+        break;
+      case "’":
+        currentLetterText = "snqt";
+        break;
+      case ",":
+        currentLetterText = "comma";
+        break;
+      case ".":
+        currentLetterText = "fstp";
+        break;
+      case "/":
+        currentLetterText = "fdsh";
+        break;
+      case "?":
+        currentLetterText = "qmrk";
+        break;
+      default:
+        break;
+    }
+    let keyToHighlight = document
+      .getElementById("keyboard")
+      .querySelector(`#${currentLetterText}`);
+    if (keyToHighlight) {
+      if (keyToHighlight.nodeName === "SPAN") {
+        keyToHighlight = keyToHighlight.parentElement;
+      }
+      keyToHighlight.classList.add("active");
     }
 
     // initialize cursor position
