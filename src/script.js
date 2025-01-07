@@ -360,6 +360,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // starting game by clearing test sentence except blink cursor
   function startGame() {
+    if (document.getElementById("keyboard").querySelector(".active")) {
+      document
+        .getElementById("keyboard")
+        .querySelector(".active")
+        .classList.remove("active");
+    }
     isFirstCharTyped = false;
     (startTime = 0), (initialCursorPos = 0), (endTime = 0);
     if (userInputField) {
