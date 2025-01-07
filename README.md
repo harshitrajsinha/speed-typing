@@ -4,7 +4,7 @@
 
 An engaging and fun typing game designed to help users improve their typing speed and accuracy. This game features a collection of unique quotes fetched from an API, creating a dynamic experience with every session. It also includes options to toggle special character challenges and background music for a personalized experience.
 
-![speed-typing](./public/speed-typing-image.png)
+![speed-typing](./public/speed-typing-image-v2.png)
 
 ## Features
 
