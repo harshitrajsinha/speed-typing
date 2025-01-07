@@ -156,7 +156,7 @@ header #logo {
   transition: transform 0.3s;
 }
 
-.toggle-switch input:checked + .slider {
+.toggle-switch input:checked + .slider.active {
   background: linear-gradient(to right, #7a90ff 47%, #1f23ff 100%);
 }
 
@@ -164,62 +164,12 @@ header #logo {
   transform: translateX(1.8vw);
 }
 
-#toggling {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  position: absolute;
-  bottom: 3%;
-  right: 2rem;
-  font-size: 1.2rem;
+.toggle-switch input + .slider.inactive {
+  background: rgb(204, 204, 204);
 }
 
-.switch-char,
-.switch-sound {
-  display: flex;
-  align-items: center;
-}
-
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 4vw;
-  height: 2.1vw;
-  margin-left: 0.5rem;
-}
-
-.toggle-switch input {
-  display: none;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  background-color: rgb(204, 204, 204);
-  border-radius: 5rem;
-  width: 100%;
-  height: 100%;
-  transition: background-color 0.3s;
-}
-
-.slider::before {
-  content: "";
-  position: absolute;
-  height: 1.8vw;
-  width: 1.8vw;
-  left: 0.2rem;
-  top: 0.2rem;
-  background-color: white;
-  border-radius: 50%;
-  transition: transform 0.3s;
-}
-
-.toggle-switch input:checked + .slider {
-  background: linear-gradient(to right, #7a90ff 47%, #1f23ff 100%);
-}
-
-.toggle-switch input:checked + .slider::before {
-  transform: translateX(1.8vw);
+.slider.inactive::before {
+  background-color: rgb(174, 172, 172);
 }
 
 /* #keyboard {

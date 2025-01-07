@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let isFirstCharTyped;
   let startTime, initialCursorPos, endTime;
   let isAborted = false;
+  let sentenceIndex = 0;
 
   let audio = document.getElementById("startSound");
 
@@ -24,7 +25,6 @@ document.addEventListener("DOMContentLoaded", function () {
   checkboxes.forEach((checkbox) => {
     checkbox.addEventListener("change", function (event) {
       const targetElem = event.target;
-      console.log(targetElem);
       if (targetElem.id === "input-char") {
         isCharAllowed = !isCharAllowed;
         newGame();
@@ -44,13 +44,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // function to fetch quotes from github gist
   async function fetchSentence() {
-    const volumeOfAvailSentence = 100; // no of available sentence
-    const randomIndex = Math.floor(Math.random() * volumeOfAvailSentence) + 1;
     try {
       const controller = new AbortController(); // Abort controller to timeout API request
       const timeoutId = setTimeout(() => controller.abort(), 5000); // abort the request after 5 seconds
       const response = await fetch(
-        "https://my-server-raj-sinha.vercel.app/api/v1/github/quotes",
+        "https://my-server-raj-sinha.vercel.app/api/quotes/v1/quotes",
         {
           method: "POST",
           headers: {
@@ -58,6 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
           },
           body: JSON.stringify({
             url: API_URL,
+            limit: 5,
           }),
           signal: controller.signal,
         }
@@ -71,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (data) {
         clearTimeout(timeoutId); // If the request is successfull in given time
-        return JSON.parse(data.quotes)[randomIndex];
+        return data.quotes;
       }
     } catch (error) {
       if (error.name === "AbortError") {
@@ -82,6 +81,23 @@ document.addEventListener("DOMContentLoaded", function () {
         return null;
       }
     }
+  }
+
+  async function storeSentence() {
+    if (localStorage.getItem("quotes") !== null) {
+      localStorage.removeItem("quotes");
+    }
+    let toRetry = false;
+    do {
+      const quote = await fetchSentence();
+      if (quote) {
+        toRetry = false;
+        localStorage.setItem("quotes", quote);
+      } else {
+        toRetry = true;
+        noTimesCalled++;
+      }
+    } while (toRetry && noTimesCalled < 4); // limit api call
   }
 
   // function to calc accuracy
@@ -108,6 +124,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // functionality after game over
   function showReloadMsg() {
+    document.querySelector(".switch-char input").disabled = true;
+    document
+      .querySelector(".switch-char span.slider")
+      .classList.remove("active");
+    document
+      .querySelector(".switch-char span.slider")
+      .classList.add("inactive");
+
     const reloadElem = document.getElementById("reload-message");
     if (reloadElem) {
       let count = 4;
@@ -237,6 +261,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // starting game by clearing test sentence except blink cursor
   function startGame() {
+    const charCheckboxSlider = document.querySelector(
+      ".switch-char span.slider"
+    );
+    document.querySelector(".switch-char input").disabled = false;
+    if (charCheckboxSlider.classList.contains("inactive")) {
+      charCheckboxSlider.classList.remove("inactive");
+      charCheckboxSlider.classList.add("active");
+    }
     isFirstCharTyped = false;
     (startTime = 0), (initialCursorPos = 0), (endTime = 0);
     if (userInputField) {
@@ -256,6 +288,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function getSentence() {
+    const quotesList = JSON.parse(localStorage.getItem("quotes"));
+    if (quotesList && sentenceIndex < quotesList.length) {
+      const quoteObj = quotesList[sentenceIndex++];
+      return quoteObj.quote;
+    }
+  }
+
   // function to abort game
   function abortGame() {
     isAborted = true;
@@ -269,25 +309,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const fragment = document.createDocumentFragment();
 
     // Get sentence
-    const quote = await fetchSentence(); // fetch unique sentence
-    if (quote) {
-      sentence = quote["quote"];
-      if (sentence.split("").length > 72) {
-        if (noTimesCalled < 4) {
-          // reacall game
-          noTimesCalled += 1;
-          sentence = "";
-          abortGame();
-          newGame();
-        } else {
-          sentence = FB_SENTENCE;
-          noTimesCalled = 0;
-        }
-      }
-    } else {
+    sentence = getSentence();
+    if (!sentence) {
       sentence = FB_SENTENCE;
+      sentenceIndex = 0;
+      storeSentence();
     }
-
     // extract array of valid chars from sentence
     const letters = getChars(sentence);
     //insert each char into document within li element
