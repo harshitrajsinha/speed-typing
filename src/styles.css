@@ -165,6 +165,7 @@ header #logo {
 }
 
 .toggle-switch input + .slider.inactive {
+  cursor: default;
   background: rgb(204, 204, 204);
 }
 
