@@ -124,13 +124,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // functionality after game over
   function showReloadMsg() {
+    const charCheckboxSlider = document.querySelector(
+      ".switch-char span.slider"
+    );
     document.querySelector(".switch-char input").disabled = true;
-    document
-      .querySelector(".switch-char span.slider")
-      .classList.remove("active");
-    document
-      .querySelector(".switch-char span.slider")
-      .classList.add("inactive");
+    if (charCheckboxSlider.classList.contains("active")) {
+      charCheckboxSlider.classList.remove("active");
+      charCheckboxSlider.classList.add("inactive");
+    }
 
     const reloadElem = document.getElementById("reload-message");
     if (reloadElem) {
@@ -261,14 +262,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // starting game by clearing test sentence except blink cursor
   function startGame() {
-    const charCheckboxSlider = document.querySelector(
-      ".switch-char span.slider"
-    );
-    document.querySelector(".switch-char input").disabled = false;
-    if (charCheckboxSlider.classList.contains("inactive")) {
-      charCheckboxSlider.classList.remove("inactive");
-      charCheckboxSlider.classList.add("active");
-    }
     isFirstCharTyped = false;
     (startTime = 0), (initialCursorPos = 0), (endTime = 0);
     if (userInputField) {
@@ -291,6 +284,14 @@ document.addEventListener("DOMContentLoaded", function () {
   function getSentence() {
     const quotesList = JSON.parse(localStorage.getItem("quotes"));
     if (quotesList && sentenceIndex < quotesList.length) {
+      const charCheckboxSlider = document.querySelector(
+        ".switch-char span.slider"
+      );
+      document.querySelector(".switch-char input").disabled = false;
+      if (charCheckboxSlider.classList.contains("inactive")) {
+        charCheckboxSlider.classList.remove("inactive");
+        charCheckboxSlider.classList.add("active");
+      }
       const quoteObj = quotesList[sentenceIndex++];
       return quoteObj.quote;
     }
@@ -311,6 +312,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // Get sentence
     sentence = getSentence();
     if (!sentence) {
+      const charCheckboxSlider = document.querySelector(
+        ".switch-char span.slider"
+      );
+      document.querySelector(".switch-char input").disabled = true;
+      if (charCheckboxSlider.classList.contains("active")) {
+        charCheckboxSlider.classList.remove("active");
+        charCheckboxSlider.classList.add("inactive");
+      }
       sentence = FB_SENTENCE;
       sentenceIndex = 0;
       storeSentence();
