@@ -2,7 +2,8 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("Script is loaded");
 
   const FB_SENTENCE = `type this line to find out how many words per minute or wpm you can type`; // fallback sentence in case quotes is not fetched
-  const API_URL = `https://api.github.com/gists`;
+  const GIST_URL = `https://api.github.com/gists`;
+  const SERVER_API_URL = `https://my-server-raj-sinha.vercel.app/api/quotes/v1/quotes`;
 
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-type input");
@@ -11,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let isFirstCharTyped;
   let startTime, initialCursorPos, endTime;
   let isAborted = false;
-  let sentenceIndex = 0;
+  let sentenceIndex = 0; // keeps track of current sentence fetched from localStorage
 
   let audio = document.getElementById("startSound");
 
@@ -22,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const targetElem = event.target;
       if (targetElem.id === "input-char") {
         isCharAllowed = !isCharAllowed;
+        sentenceIndex--;
         newGame();
       } else if (targetElem.id === "input-sound") {
         targetElem.checked ? audio.play() : audio.pause();
@@ -41,31 +43,35 @@ document.addEventListener("DOMContentLoaded", function () {
   async function fetchSentence() {
     try {
       const controller = new AbortController(); // Abort controller to timeout API request
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // abort the request after 5 seconds
-      const response = await fetch(
-        "https://my-server-raj-sinha.vercel.app/api/quotes/v1/quotes",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            url: API_URL,
-            limit: 5,
-          }),
-          signal: controller.signal,
-        }
-      );
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // abort the request after 10 seconds of calling fetchSentence()
+      const response = await fetch(SERVER_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: GIST_URL,
+          limit: 5,
+        }),
+        signal: controller.signal,
+      });
 
       // If error in fetching data
       if (!response.ok) {
         throw new Error(`Failed to fetch sentence: ${response.statusText}`);
       }
-      const data = await response.json();
+      if (
+        response.headers.get("Content-Type") &&
+        response.headers.get("Content-Type").includes("application/json")
+      ) {
+        const data = await response.json();
 
-      if (data) {
-        clearTimeout(timeoutId); // If the request is successfull in given time
-        return data.quotes;
+        if (data) {
+          clearTimeout(timeoutId); // If the request is successfull in given time
+          return data.quotes;
+        }
+      } else {
+        throw new Error("Response is not JSON:", contentType);
       }
     } catch (error) {
       if (error.name === "AbortError") {
@@ -76,23 +82,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return null;
       }
     }
-  }
-
-  async function storeSentence() {
-    if (localStorage.getItem("quotes") !== null) {
-      localStorage.removeItem("quotes");
-    }
-    let toRetry = false;
-    do {
-      const quote = await fetchSentence();
-      if (quote) {
-        toRetry = false;
-        localStorage.setItem("quotes", quote);
-      } else {
-        toRetry = true;
-        noTimesCalled++;
-      }
-    } while (toRetry && noTimesCalled < 4); // limit api call
   }
 
   // function to calc accuracy
@@ -180,267 +169,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Adding each character into html element
-  function addCharacter(letter, letterId) {
-    const elem = document.createElement("li");
-    elem.id = letterId;
-    elem.classList.add("letter");
-    if (!letterId) {
-      elem.classList.add("current");
-    }
-    elem.innerHTML = letter;
-    return elem;
-  }
-
-  // Split sentence into characters
-  function getChars(sentence) {
-    return sentence
-      .split("")
-      .map((character) =>
-        character !== " " ? character.toLowerCase() : "&nbsp;"
-      )
-      .filter((character) => {
-        if (!isCharAllowed) {
-          // filter out any special characters
-          const regex = /^[a-z]$|^&nbsp;$/; // a character can be lowercase letter or space
-          return regex.test(character);
-        } else {
-          return character;
-        }
-      });
-  }
-
-  function handleUserInput(e) {
-    let isValidSpace = false;
-    let currentLetter = document.querySelector("li.current");
-    if (!isFirstCharTyped) {
-      startTime = new Date().getTime(); // start timer
-      isFirstCharTyped = true;
-    }
-
-    // checking if space character
-    if (
-      e.data &&
-      e.data.charCodeAt(0) === 32 && // space key charcter code
-      currentLetter.textContent.charCodeAt(0) === 160 // nbsp charcter code
-    ) {
-      isValidSpace = true;
-    }
-
-    if (
-      e.data === currentLetter.textContent ||
-      isValidSpace ||
-      (e.data === "'" &&
-        (currentLetter.textContent === "’" ||
-          currentLetter.textContent === "'"))
-    ) {
-      let prevLetterText = currentLetter.innerHTML;
-      switch (prevLetterText) {
-        case "&nbsp;":
-          prevLetterText = "space";
-          break;
-        case ":":
-          prevLetterText = "apos";
-          break;
-        case '"':
-          prevLetterText = "dbqt";
-          break;
-        case ";":
-          prevLetterText = "smcln";
-          break;
-        case "'":
-          prevLetterText = "snqt";
-          break;
-        case "’":
-          prevLetterText = "snqt";
-          break;
-        case ",":
-          prevLetterText = "comma";
-          break;
-        case ".":
-          prevLetterText = "fstp";
-          break;
-        case "/":
-          prevLetterText = "fdsh";
-          break;
-        case "?":
-          prevLetterText = "qmrk";
-          break;
-        default:
-          break;
-      }
-      if (!currentLetter.classList.contains("incorrect")) {
-        currentLetter.classList.add("correct");
-      }
-      if (currentLetter.nextSibling) {
-        currentLetter.classList.remove("current");
-        currentLetter.nextSibling.classList.add("current");
-        currentLetter = document.querySelector("li.current"); // re-initialize currentLetter
-        let currentLetterText = currentLetter.innerHTML;
-        switch (currentLetterText) {
-          case "&nbsp;":
-            currentLetterText = "space";
-            break;
-          case ":":
-            currentLetterText = "apos";
-            break;
-          case '"':
-            currentLetterText = "dbqt";
-            break;
-          case ";":
-            currentLetterText = "smcln";
-            break;
-          case "'":
-            currentLetterText = "snqt";
-            break;
-          case "’":
-            currentLetterText = "snqt";
-            break;
-          case ",":
-            currentLetterText = "comma";
-            break;
-          case ".":
-            currentLetterText = "fstp";
-            break;
-          case "/":
-            currentLetterText = "fdsh";
-            break;
-          case "?":
-            currentLetterText = "qmrk";
-            break;
-          default:
-            break;
-        }
-        let keyToHighlight = document
-          .getElementById("keyboard")
-          .querySelector(`#${currentLetterText}`);
-        if (keyToHighlight) {
-          let keyToRmvHighlight = document
-            .getElementById("keyboard")
-            .querySelector(`#${prevLetterText}`);
-          if (keyToRmvHighlight.nodeName === "SPAN") {
-            keyToRmvHighlight = keyToRmvHighlight.parentElement;
-          }
-          if (keyToRmvHighlight.classList.contains("active")) {
-            keyToRmvHighlight.classList.remove("active");
-          }
-          if (keyToHighlight.nodeName === "SPAN") {
-            keyToHighlight = keyToHighlight.parentElement;
-          }
-          keyToHighlight.classList.add("active");
-        }
-
-        // move cursor to next letter
-        moveCursor(currentLetter, initialCursorPos);
-
-        // clear input field on space
-        if (isValidSpace) {
-          userInputField.value = "";
-          isValidSpace = false;
-        }
-      } else {
-        let keyToRmvHighlight = document
-          .getElementById("keyboard")
-          .querySelector(`#${prevLetterText}`);
-        if (keyToRmvHighlight.nodeName === "SPAN") {
-          keyToRmvHighlight = keyToRmvHighlight.parentElement;
-        }
-        if (keyToRmvHighlight.classList.contains("active")) {
-          keyToRmvHighlight.classList.remove("active");
-        }
-        currentLetter.classList.remove("current");
-        currentLetter = null;
-        endTime = new Date().getTime();
-        gameOver(startTime, endTime);
-      }
-    } else {
-      currentLetter.classList.add("incorrect");
-    }
-  }
-
-  // starting game by clearing test sentence except blink cursor
-  function startGame() {
-    if (document.getElementById("keyboard").querySelector(".active")) {
-      document
-        .getElementById("keyboard")
-        .querySelector(".active")
-        .classList.remove("active");
-    }
-    isFirstCharTyped = false;
-    (startTime = 0), (initialCursorPos = 0), (endTime = 0);
-    if (userInputField) {
-      userInputField.disabled = false;
-      userInputField.value = null;
-      userInputField.focus();
-    }
-
-    if (testSentence) {
-      const cursorContainer = testSentence.firstElementChild; // copy an instance of blink cursor element
-      testSentence.replaceChildren(); // clear if sentence already exists
-      if (cursorContainer) {
-        testSentence.appendChild(cursorContainer); // add blink cursor element
-        cursorContainer.firstElementChild.style.display = "inline";
-        cursorContainer.firstElementChild.style.left = "-5px";
-      }
-    }
-  }
-
-  function getSentence() {
-    const quotesList = JSON.parse(localStorage.getItem("quotes"));
-    if (quotesList && sentenceIndex < quotesList.length) {
-      const charCheckboxSlider = document.querySelector(
-        ".switch-char span.slider"
-      );
-      document.querySelector(".switch-char input").disabled = false;
-      if (charCheckboxSlider.classList.contains("inactive")) {
-        charCheckboxSlider.classList.remove("inactive");
-        charCheckboxSlider.classList.add("active");
-      }
-      const quoteObj = quotesList[sentenceIndex++];
-      return quoteObj.quote;
-    }
-  }
-
   // function to abort game
   function abortGame() {
     isAborted = true;
   }
 
-  // main function starts here
-  async function newGame() {
-    isAborted = false;
-    startGame();
-    let sentence;
-    const fragment = document.createDocumentFragment();
-
-    // Get sentence
-    sentence = getSentence();
-    if (!sentence) {
-      const charCheckboxSlider = document.querySelector(
-        ".switch-char span.slider"
-      );
-      document.querySelector(".switch-char input").disabled = true;
-      if (charCheckboxSlider.classList.contains("active")) {
-        charCheckboxSlider.classList.remove("active");
-        charCheckboxSlider.classList.add("inactive");
-      }
-      sentence = FB_SENTENCE;
-      sentenceIndex = 0;
-      storeSentence();
-    }
-    // extract array of valid chars from sentence
-    const letters = getChars(sentence);
-    //insert each char into document within li element
-    if (testSentence) {
-      letters.forEach((letter, index) => {
-        fragment.appendChild(addCharacter(letter, index));
-      });
-      testSentence.appendChild(fragment);
-    }
-
-    let currentLetter = document.querySelector("li.current");
-    let currentLetterText = currentLetter.innerHTML;
-    switch (currentLetterText) {
+  // function to highlight keyboard keys
+  function activeInactiveKeys(character, event) {
+    let currentLetterText;
+    switch (character) {
       case "&nbsp;":
         currentLetterText = "space";
         break;
@@ -472,17 +209,229 @@ document.addEventListener("DOMContentLoaded", function () {
         currentLetterText = "qmrk";
         break;
       default:
+        currentLetterText = character;
         break;
     }
-    let keyToHighlight = document
+
+    let keyToProcess = document
       .getElementById("keyboard")
       .querySelector(`#${currentLetterText}`);
-    if (keyToHighlight) {
-      if (keyToHighlight.nodeName === "SPAN") {
-        keyToHighlight = keyToHighlight.parentElement;
+    if (keyToProcess) {
+      if (keyToProcess.nodeName === "SPAN") {
+        keyToProcess = keyToProcess.parentElement;
       }
-      keyToHighlight.classList.add("active");
+      if (event === "active") {
+        keyToProcess.classList.add("active");
+      } else if (event === "inactive") {
+        if (keyToProcess.classList.contains("active")) {
+          keyToProcess.classList.remove("active");
+        }
+      }
     }
+
+    return;
+  }
+
+  function handleUserInput(e) {
+    let isValidSpace = false;
+    let currentLetter = document.querySelector("li.current");
+    if (!isFirstCharTyped) {
+      startTime = new Date().getTime(); // start timer
+      isFirstCharTyped = true;
+    }
+
+    // checking if space character
+    if (
+      e.data &&
+      e.data.charCodeAt(0) === 32 && // space key charcter code
+      currentLetter.textContent.charCodeAt(0) === 160 // nbsp charcter code
+    ) {
+      isValidSpace = true;
+    }
+
+    if (
+      e.data === currentLetter.textContent ||
+      isValidSpace ||
+      (e.data === "'" &&
+        (currentLetter.textContent === "’" ||
+          currentLetter.textContent === "'"))
+    ) {
+      let prevLetterText = currentLetter.innerHTML;
+      if (!currentLetter.classList.contains("incorrect")) {
+        currentLetter.classList.add("correct");
+      }
+      if (currentLetter.nextSibling) {
+        currentLetter.classList.remove("current");
+        currentLetter.nextSibling.classList.add("current");
+        currentLetter = document.querySelector("li.current"); // re-initialize currentLetter
+        let currentLetterText = currentLetter.innerHTML;
+        activeInactiveKeys(prevLetterText, "inactive");
+        activeInactiveKeys(currentLetterText, "active");
+        // move cursor to next letter
+        moveCursor(currentLetter, initialCursorPos);
+
+        // clear input field on space
+        if (isValidSpace) {
+          userInputField.value = "";
+          isValidSpace = false;
+        }
+      } else {
+        activeInactiveKeys(prevLetterText, "inactive");
+        currentLetter.classList.remove("current");
+        currentLetter = null;
+        endTime = new Date().getTime();
+        gameOver(startTime, endTime);
+      }
+    } else {
+      currentLetter.classList.add("incorrect");
+    }
+  }
+
+  // Adding each character into html element
+  function addCharacter(letter, letterId) {
+    const elem = document.createElement("li");
+    elem.id = letterId;
+    elem.classList.add("letter");
+    if (!letterId) {
+      elem.classList.add("current");
+    }
+    elem.innerHTML = letter;
+    return elem;
+  }
+
+  // Split sentence into characters
+  function getChars(sentence) {
+    return sentence
+      .split("")
+      .map((character) =>
+        character !== " " ? character.toLowerCase() : "&nbsp;"
+      )
+      .filter((character) => {
+        if (!isCharAllowed) {
+          // filter out any special characters
+          const regex = /^[a-z]$|^&nbsp;$/; // a character can be lowercase letter or space
+          return regex.test(character);
+        } else {
+          return character;
+        }
+      });
+  }
+
+  // function to convert sentence to inidividual character
+  function sentenceToChar(sentence) {
+    const fragment = document.createDocumentFragment();
+
+    // extract array of valid chars from sentence
+    const letters = getChars(sentence);
+    //insert each char into document within li element
+    if (testSentence) {
+      letters.forEach((letter, index) => {
+        fragment.appendChild(addCharacter(letter, index));
+      });
+      testSentence.appendChild(fragment);
+    }
+  }
+
+  // store sentence to localStorage from fetch
+  async function storeSentence() {
+    let toRetry = false;
+    if (localStorage.getItem("quotes") !== null) {
+      localStorage.removeItem("quotes");
+    }
+    do {
+      const quote = await fetchSentence();
+      if (quote) {
+        toRetry = false;
+        localStorage.setItem("quotes", quote);
+      } else {
+        toRetry = true;
+        noTimesCalled++;
+      }
+    } while (toRetry && noTimesCalled < 4); // limit api call
+  }
+
+  // Get sentence from localStorage
+  function getSentence() {
+    const quotesList = JSON.parse(localStorage.getItem("quotes"));
+    if (quotesList && sentenceIndex < quotesList.length) {
+      const charCheckbox = document.querySelector(".switch-char");
+      if (charCheckbox) {
+        charCheckbox.querySelector("input").disabled = false; // enable character toggle
+        const charCheckboxSlider = charCheckbox.querySelector("span.slider");
+        if (charCheckboxSlider.classList.contains("inactive")) {
+          charCheckboxSlider.classList.remove("inactive");
+          charCheckboxSlider.classList.add("active");
+        }
+      }
+      const quoteObj = quotesList[sentenceIndex++];
+      return quoteObj.quote;
+    }
+  }
+
+  // starting game by clearing test sentence except blink cursor
+  // will be called for every new game
+  function startGame() {
+    isFirstCharTyped = false;
+    startTime = 0;
+    initialCursorPos = 0;
+    endTime = 0;
+
+    // deactivate any active key from keyboard layout
+    const activeKey = document
+      .getElementById("keyboard")
+      .querySelector(".active");
+    if (activeKey) {
+      activeKey.classList.remove("active");
+    }
+
+    if (userInputField) {
+      userInputField.disabled = false;
+      userInputField.value = null;
+      userInputField.focus();
+    }
+
+    if (testSentence) {
+      const cursorContainer = testSentence.firstElementChild; // copy an instance of blink cursor
+      testSentence.replaceChildren(); // clear if sentence already exists
+      if (cursorContainer) {
+        testSentence.appendChild(cursorContainer); // add blink cursor element
+        cursorContainer.firstElementChild.style.display = "inline";
+        cursorContainer.firstElementChild.style.left = "-5px";
+      }
+    }
+  }
+
+  // main function starts here
+  function newGame() {
+    isAborted = false;
+    let sentence;
+
+    // initialize game;
+    startGame();
+
+    // Get sentence
+    sentence = getSentence();
+    if (!sentence) {
+      const charCheckbox = document.querySelector(".switch-char");
+      if (charCheckbox) {
+        charCheckbox.querySelector("input").disabled = true; // disable character toggle
+        const charCheckboxSlider = charCheckbox.querySelector("span.slider");
+        if (charCheckboxSlider.classList.contains("active")) {
+          charCheckboxSlider.classList.remove("active");
+          charCheckboxSlider.classList.add("inactive");
+        }
+      }
+      sentence = FB_SENTENCE; // initialize fallback sentence
+      sentenceIndex = 0;
+      storeSentence();
+    }
+
+    // convert sentence to individual chars
+    sentenceToChar(sentence);
+
+    let currentLetter = document.querySelector("li.current");
+    let currentLetterText = currentLetter.innerHTML;
+    activeInactiveKeys(currentLetterText, "active");
 
     // initialize cursor position
     initialCursorPos = parseInt(

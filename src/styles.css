@@ -457,3 +457,9 @@ li.incorrect {
     transform: translateX(4.8vw);
   }
 }
+
+@media (orientation: landscape) {
+  #keyboard {
+    display: none;
+  }
+}
