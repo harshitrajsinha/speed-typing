@@ -10,11 +10,13 @@ body {
   height: 100vh;
   width: 100vw;
   background-image: linear-gradient(to bottom right, #ffffff, #c4f5ff);
-  padding: 1rem 3rem 3rem 3rem;
+  padding: 1rem 3rem 1rem 3rem;
 }
 
 main {
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 header {
@@ -74,6 +76,10 @@ header #logo {
   font-size: 3rem;
 }
 
+#container {
+  flex-grow: 1;
+}
+
 #test-sentence {
   margin-top: 3rem;
   border-bottom: 3px solid #1d9beb;
@@ -106,12 +112,15 @@ header #logo {
   text-align: center;
 }
 
+footer {
+  width: 100%;
+}
+
 #toggling {
   display: flex;
   flex-direction: row;
   gap: 1rem;
-  position: absolute;
-  bottom: 3%;
+  justify-content: end;
   right: 2rem;
   font-size: 1.2rem;
 }
@@ -342,7 +351,7 @@ li.incorrect {
     font-size: 6vw;
   }
   #container {
-    margin-top: 15vw;
+    margin-top: 4vw;
   }
 
   #test-sentence {
@@ -458,8 +467,17 @@ li.incorrect {
   }
 }
 
-@media (orientation: landscape) {
+@media screen and (max-width: 1024px) and (orientation: landscape) {
   #keyboard {
     display: none;
+  }
+}
+
+@media screen and (max-width: 1024px) and (orientation: landscape) {
+  body {
+    padding-bottom: 1rem;
+  }
+  #container {
+    margin-bottom: 2rem;
   }
 }

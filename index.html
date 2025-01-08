@@ -51,7 +51,7 @@
     <script src="./src/script.js"></script>
   </head>
   <body>
-    <audio id="startSound" src="./public/WINDY_HILL.mp3" preload="auto"></audio>
+    <audio id="startSound" src="./public/windy-hill.mp3" preload="auto"></audio>
     <main>
       <header>
         <div id="logo">Speed Typing</div>
@@ -76,22 +76,7 @@
         <div id="user-type">
           <input type="text" placeholder="type here" autofocus />
         </div>
-        <div id="toggling">
-          <div class="switch-char">
-            <label>Character</label>
-            <label class="toggle-switch">
-              <input id="input-char" type="checkbox" checked />
-              <span class="slider active"></span>
-            </label>
-          </div>
-          <div class="switch-sound">
-            <label>Sound</label>
-            <label class="toggle-switch">
-              <input id="input-sound" class="active" type="checkbox" />
-              <span class="slider active"></span>
-            </label>
-          </div>
-        </div>
+
         <div id="keyboard-container">
           <div id="keyboard">
             <!-- <div id="key-row-char">
@@ -155,6 +140,24 @@
           </div>
         </div>
       </div>
+      <footer>
+        <div id="toggling">
+          <div class="switch-char">
+            <label>Character</label>
+            <label class="toggle-switch">
+              <input id="input-char" type="checkbox" checked />
+              <span class="slider active"></span>
+            </label>
+          </div>
+          <div class="switch-sound">
+            <label>Sound</label>
+            <label class="toggle-switch">
+              <input id="input-sound" class="active" type="checkbox" />
+              <span class="slider active"></span>
+            </label>
+          </div>
+        </div>
+      </footer>
     </main>
   </body>
 </html>
