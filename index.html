@@ -48,20 +48,24 @@
     />
     <!-- Link for external CSS -->
     <link rel="stylesheet" href="./src/styles.css" />
-    <script src="./src/script.js"></script>
   </head>
   <body>
-    <audio id="startSound" src="./public/windy-hill.mp3" preload="auto"></audio>
+    <audio
+      id="startSound"
+      src="./public/windy-hill.mp3"
+      preload="auto"
+      loop
+    ></audio>
     <main>
       <header>
         <div id="logo">Speed Typing</div>
         <div id="reload-message">Refreshing in</div>
-        <div class="info-container">
-          <div class="wpm-container">
+        <div id="info-container">
+          <div id="wpm-container">
             <span id="wpm-digit">0</span>&nbsp;WPM
             <div>Speed</div>
           </div>
-          <div class="accuracy-container">
+          <div id="accuracy-container">
             <span id="acc-digit">0</span>&nbsp;%
             <div>Accuracy</div>
           </div>
@@ -76,80 +80,79 @@
         <div id="user-type">
           <input type="text" placeholder="type here" autofocus />
         </div>
-
         <div id="keyboard-container">
           <div id="keyboard">
-            <!-- <div id="key-row-char">
-            <div class="key">~<span>`</span></div>
-            <div class="key">!<span>1</span></div>
-            <div class="key">@<span>2</span></div>
-            <div class="key">#<span>3</span></div>
-            <div class="key">$<span>4</span></div>
-            <div class="key">%<span>5</span></div>
-            <div class="key">^<span>6</span></div>
-            <div class="key">&<span>7</span></div>
-            <div class="key">*<span>8</span></div>
-            <div class="key">(<span>9</span></div>
-            <div class="key">)<span>0</span></div>
-            <div class="key">_<span>-</span></div>
-            <div class="key">+<span>=</span></div>
-          </div> -->
-            <div id="key-row-one">
-              <div id="q" class="key">Q<span>___</span></div>
-              <div id="w" class="key">W<span>___</span></div>
-              <div id="e" class="key">E<span>___</span></div>
-              <div id="r" class="key">R<span>___</span></div>
-              <div id="t" class="key">T<span>___</span></div>
-              <div id="y" class="key">Y<span>___</span></div>
-              <div id="u" class="key">U<span>___</span></div>
-              <div id="i" class="key">I<span>___</span></div>
-              <div id="o" class="key">O<span>___</span></div>
-              <div id="p" class="key">P<span>___</span></div>
-              <div id="{" class="key">{<span id="[">[</span></div>
-              <div id="}" class="key">}<span id="]">]</span></div>
-              <div id="|" class="key">|<span id="bksh">\</span></div>
-            </div>
-            <div id="key-row-two">
-              <div id="a" class="key">A<span>___</span></div>
-              <div id="s" class="key">S<span>___</span></div>
-              <div id="d" class="key">D<span>___</span></div>
-              <div id="f" class="key">F<span>___</span></div>
-              <div id="g" class="key">G<span>___</span></div>
-              <div id="h" class="key">H<span>___</span></div>
-              <div id="j" class="key">J<span>___</span></div>
-              <div id="k" class="key">K<span>___</span></div>
-              <div id="l" class="key">L<span>___</span></div>
-              <div id="apos" class="key">&apos;<span id="smcln">;</span></div>
-              <div id="dbqt" class="key">&quot;<span id="snqt">'</span></div>
-            </div>
-            <div id="key-row-three">
-              <div id="z" class="key">Z<span>___</span></div>
-              <div id="x" class="key">X<span>___</span></div>
-              <div id="c" class="key">C<span>___</span></div>
-              <div id="v" class="key">V<span>___</span></div>
-              <div id="b" class="key">B<span>___</span></div>
-              <div id="n" class="key">N<span>___</span></div>
-              <div id="m" class="key">M<span>___</span></div>
-              <div id="&lt;" class="key">&lt;<span id="comma">,</span></div>
-              <div id="&gt;" class="key">&gt;<span id="fstp">.</span></div>
-              <div id="qmrk" class="key">?<span id="fdsh">/</span></div>
-            </div>
-            <div id="key-row-space">
-              <div id="space" class="key">|____|</div>
-            </div>
+            <!-- <ul id="key-row-char">
+            <li class="key">~<span>`</span></li>
+            <li class="key">!<span>1</span></li>
+            <li class="key">@<span>2</span></li>
+            <li class="key">#<span>3</span></li>
+            <li class="key">$<span>4</span></li>
+            <li class="key">%<span>5</span></li>
+            <li class="key">^<span>6</span></li>
+            <li class="key">&<span>7</span></li>
+            <li class="key">*<span>8</span></li>
+            <li class="key">(<span>9</span></li>
+            <li class="key">)<span>0</span></li>
+            <li class="key">_<span>-</span></li>
+            <li class="key">+<span>=</span></li>
+            </ul> -->
+            <ul id="row-one" class="key-row">
+              <li id="q" class="key">Q<span>___</span></li>
+              <li id="w" class="key">W<span>___</span></li>
+              <li id="e" class="key">E<span>___</span></li>
+              <li id="r" class="key">R<span>___</span></li>
+              <li id="t" class="key">T<span>___</span></li>
+              <li id="y" class="key">Y<span>___</span></li>
+              <li id="u" class="key">U<span>___</span></li>
+              <li id="i" class="key">I<span>___</span></li>
+              <li id="o" class="key">O<span>___</span></li>
+              <li id="p" class="key">P<span>___</span></li>
+              <li id="{" class="key">{<span id="[">[</span></li>
+              <li id="}" class="key">}<span id="]">]</span></li>
+              <li id="|" class="key">|<span id="bksh">\</span></li>
+            </ul>
+            <ul id="row-two" class="key-row">
+              <li id="a" class="key">A<span>___</span></li>
+              <li id="s" class="key">S<span>___</span></li>
+              <li id="d" class="key">D<span>___</span></li>
+              <li id="f" class="key">F<span>___</span></li>
+              <li id="g" class="key">G<span>___</span></li>
+              <li id="h" class="key">H<span>___</span></li>
+              <li id="j" class="key">J<span>___</span></li>
+              <li id="k" class="key">K<span>___</span></li>
+              <li id="l" class="key">L<span>___</span></li>
+              <li id="apos" class="key">&apos;<span id="smcln">;</span></li>
+              <li id="dbqt" class="key">&quot;<span id="snqt">'</span></li>
+            </ul>
+            <ul id="row-three" class="key-row">
+              <li id="z" class="key">Z<span>___</span></li>
+              <li id="x" class="key">X<span>___</span></li>
+              <li id="c" class="key">C<span>___</span></li>
+              <li id="v" class="key">V<span>___</span></li>
+              <li id="b" class="key">B<span>___</span></li>
+              <li id="n" class="key">N<span>___</span></li>
+              <li id="m" class="key">M<span>___</span></li>
+              <li id="&lt;" class="key">&lt;<span id="comma">,</span></li>
+              <li id="&gt;" class="key">&gt;<span id="fstp">.</span></li>
+              <li id="qmrk" class="key">?<span id="fdsh">/</span></li>
+            </ul>
+            <ul id="row-space" class="key-row">
+              <li id="space" class="key">|____|</li>
+            </ul>
           </div>
         </div>
       </div>
       <footer>
         <div id="toggling">
-          <div class="switch-char">
+          <div class="switch-container" id="switch-char">
             <label>Character</label>
             <label class="toggle-switch">
               <input id="input-char" type="checkbox" checked />
               <span class="slider active"></span>
             </label>
           </div>
-          <div class="switch-sound">
+          <div class="switch-container" id="switch-sound">
             <label>Sound</label>
             <label class="toggle-switch">
               <input id="input-sound" class="active" type="checkbox" />
@@ -159,5 +162,6 @@
         </div>
       </footer>
     </main>
+    <script src="./src/script.js" defer></script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Script is loaded");
+  console.log("DOM is loaded");
 
   const FB_SENTENCE = `type this line to find out how many words per minute or wpm you can type`; // fallback sentence in case quotes is not fetched
   const GIST_URL = `https://api.github.com/gists`;
@@ -109,9 +109,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // functionality after game over
   function showReloadMsg() {
     const charCheckboxSlider = document.querySelector(
-      ".switch-char span.slider"
+      "#switch-char span.slider"
     );
-    document.querySelector(".switch-char input").disabled = true;
+    document.querySelector("#switch-char input").disabled = true;
+    document.querySelector("#switch-char input").title = "harshit";
     if (charCheckboxSlider.classList.contains("active")) {
       charCheckboxSlider.classList.remove("active");
       charCheckboxSlider.classList.add("inactive");
@@ -335,14 +336,14 @@ document.addEventListener("DOMContentLoaded", function () {
   // store sentence to localStorage from fetch
   async function storeSentence() {
     let toRetry = false;
-    if (localStorage.getItem("quotes") !== null) {
-      localStorage.removeItem("quotes");
+    if (sessionStorage.getItem("quotes") !== null) {
+      sessionStorage.removeItem("quotes");
     }
     do {
       const quote = await fetchSentence();
       if (quote) {
         toRetry = false;
-        localStorage.setItem("quotes", quote);
+        sessionStorage.setItem("quotes", quote);
       } else {
         toRetry = true;
         noTimesCalled++;
@@ -352,9 +353,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Get sentence from localStorage
   function getSentence() {
-    const quotesList = JSON.parse(localStorage.getItem("quotes"));
+    const quotesList = JSON.parse(sessionStorage.getItem("quotes"));
     if (quotesList && sentenceIndex < quotesList.length) {
-      const charCheckbox = document.querySelector(".switch-char");
+      const charCheckbox = document.querySelector("#switch-char");
       if (charCheckbox) {
         charCheckbox.querySelector("input").disabled = false; // enable character toggle
         const charCheckboxSlider = charCheckbox.querySelector("span.slider");
@@ -412,7 +413,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Get sentence
     sentence = getSentence();
     if (!sentence) {
-      const charCheckbox = document.querySelector(".switch-char");
+      const charCheckbox = document.querySelector("#switch-char");
       if (charCheckbox) {
         charCheckbox.querySelector("input").disabled = true; // disable character toggle
         const charCheckboxSlider = charCheckbox.querySelector("span.slider");

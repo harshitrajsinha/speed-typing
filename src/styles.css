@@ -19,7 +19,7 @@ main {
   flex-direction: column;
 }
 
-header {
+main header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -42,12 +42,20 @@ header #logo {
   color: transparent;
 }
 
-.info-container {
+header #reload-message {
+  animation: blink 0.6s infinite;
+  align-items: center;
+  color: red;
+  font-size: 1.5rem;
+  display: none;
+}
+
+header #info-container {
   display: flex;
   justify-content: space-around;
 }
 
-.wpm-container {
+#info-container #wpm-container {
   border-right: 1px solid black;
   font-family: "Roboto", sans-serif;
   font-weight: 400;
@@ -58,11 +66,11 @@ header #logo {
   text-align: center;
 }
 
-#wpm-digit {
+#info-container #wpm-digit {
   font-size: 3rem;
 }
 
-.accuracy-container {
+#info-container #accuracy-container {
   font-family: "Roboto", sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -72,15 +80,15 @@ header #logo {
   text-align: center;
 }
 
-#acc-digit {
+#info-container #acc-digit {
   font-size: 3rem;
 }
 
-#container {
-  flex-grow: 1;
+main #container {
+  flex-grow: 1; /* to push footer to bottom of page */
 }
 
-#test-sentence {
+#container #test-sentence {
   margin-top: 3rem;
   border-bottom: 3px solid #1d9beb;
   font-family: "Roboto", serif;
@@ -93,7 +101,29 @@ header #logo {
   opacity: 0.8;
 }
 
-#user-type {
+#test-sentence #cursor-container {
+  position: relative;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+#test-sentence #blink-cursor {
+  animation: blink 0.8s infinite;
+  position: absolute;
+  color: #0004f9;
+}
+
+#container #user-type {
   margin-top: 2rem;
   display: flex;
   justify-content: center;
@@ -112,74 +142,55 @@ header #logo {
   text-align: center;
 }
 
-footer {
-  width: 100%;
-}
-
-#toggling {
+#container #keyboard-container {
   display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  justify-content: end;
-  right: 2rem;
-  font-size: 1.2rem;
+  justify-content: center;
 }
 
-.switch-char,
-.switch-sound {
-  display: flex;
-  align-items: center;
-}
-
-.toggle-switch {
+#keyboard-container #keyboard {
+  margin: 48px 288px 0;
+  width: 864px;
+  padding: 16px;
   position: relative;
-  display: inline-block;
-  width: 4vw;
-  height: 2.1vw;
-  margin-left: 0.5rem;
 }
 
-.toggle-switch input {
-  display: none;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  background-color: rgb(204, 204, 204);
-  border-radius: 5rem;
-  width: 100%;
-  height: 100%;
-  transition: background-color 0.3s;
-}
-
-.slider::before {
+#keyboard-container #keyboard::before {
   content: "";
+  border-radius: 24px;
+  background: linear-gradient(to right, #2ce4ff 50%, #1d9beb 80%);
   position: absolute;
-  height: 1.8vw;
-  width: 1.8vw;
-  left: 0.2rem;
-  top: 0.2rem;
+  inset: 0;
+  opacity: 0.5;
+}
+
+#keyboard-container .key-row {
+  isolation: isolate;
+  display: flex;
+  justify-content: center;
+  gap: 12.8px;
+  margin: 0px 0px 8px;
+}
+
+#keyboard-container #key-row-space {
+  margin-bottom: 0;
+}
+
+#keyboard-container #space {
+  padding: 0 160px;
+}
+
+#keyboard-container .key {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 51.2px;
+  height: 51.2px;
   background-color: white;
-  border-radius: 50%;
-  transition: transform 0.3s;
-}
-
-.toggle-switch input:checked + .slider.active {
-  background: linear-gradient(to right, #7a90ff 47%, #1f23ff 100%);
-}
-
-.toggle-switch input:checked + .slider::before {
-  transform: translateX(1.8vw);
-}
-
-.toggle-switch input + .slider.inactive {
-  cursor: default;
-  background: rgb(204, 204, 204);
-}
-
-.slider.inactive::before {
-  background-color: rgb(174, 172, 172);
+  border: 1px solid black;
+  border-radius: 8px;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
 @keyframes keyBlink {
@@ -194,72 +205,8 @@ footer {
   }
 }
 
-.key.active {
-  animation: keyBlink 0.8s infinite;
-}
-
-#keyboard-container {
-  display: flex;
-  justify-content: center;
-}
-
-#keyboard {
-  /* margin: 3rem auto 0 auto; */
-  margin: 48px 288px 0;
-  /* width: 60%; */
-  width: 864px;
-  /* padding: 1rem; */
-  padding: 16px;
-  position: relative;
-}
-
-#keyboard::before {
-  content: "";
-  /* border-radius: 1.5rem; */
-  border-radius: 24px;
-  background: linear-gradient(to right, #2ce4ff 50%, #1d9beb 80%);
-  position: absolute;
-  inset: 0;
-  opacity: 0.5;
-}
-
-#key-row-one,
-#key-row-two,
-#key-row-three,
-#key-row-space {
-  isolation: isolate;
-  display: flex;
-  justify-content: center;
-  /* gap: 0.8rem; */
-  gap: 12.8px;
-  /* margin-bottom: 0.5rem; */
-  margin: 0px 0px 8px;
-}
-
-#key-row-space {
-  margin-bottom: 0;
-}
-
-#space {
-  /* padding: 0 10rem; */
-  padding: 0 160px;
-}
-
-.key {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  /* width: 3.2rem;
-  height: 3.2rem; */
-  width: 51.2px;
-  height: 51.2px;
-  background-color: white; /*#a3ffa3*/
-  border: 1px solid black;
-  /* border-radius: 0.5rem; */
-  border-radius: 8px;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+#keyboard-container .key.active {
+  animation: keyBlink 0.8s infinite; /* change background-color from 0-50-100 in a cycle of 0.8s, and loop infinitely*/
 }
 
 li {
@@ -274,36 +221,75 @@ li.incorrect {
   color: #d41313;
 }
 
-#cursor-container {
-  position: relative;
+main footer {
+  width: 100%;
 }
 
-@keyframes blink {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+footer #toggling {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  justify-content: end;
+  font-size: 1.2rem;
 }
 
-#blink-cursor {
-  animation: blink 0.8s infinite;
-  position: absolute;
-  color: #0004f9;
-}
-
-#reload-message {
-  animation: blink 0.6s infinite;
+#toggling .switch-container {
+  display: flex;
   align-items: center;
-  color: red;
-  font-size: 1.5rem;
+}
+
+#toggling .toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 4vw;
+  height: 2.1vw;
+  margin-left: 0.5rem;
+}
+
+#toggling .toggle-switch input {
   display: none;
 }
 
+#toggling span.slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: rgb(204, 204, 204);
+  border-radius: 5rem;
+  width: 100%;
+  height: 100%;
+  transition: background-color 0.3s;
+}
+
+#toggling span.slider::before {
+  content: "";
+  position: absolute;
+  height: 1.8vw;
+  width: 1.8vw;
+  left: 0.2rem;
+  top: 0.2rem;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s; /* takes 0.3s to move left to right instead of immediately */
+}
+
+#toggling .toggle-switch input:checked + .slider::before {
+  transform: translateX(1.8vw);
+}
+
+#toggling .toggle-switch input:checked + .slider.active {
+  background: linear-gradient(to right, #7a90ff 47%, #1f23ff 100%);
+}
+
+#toggling .toggle-switch input + .slider.inactive {
+  cursor: default;
+  background: rgb(204, 204, 204);
+}
+
+#toggling .slider.inactive::before {
+  background-color: rgb(174, 172, 172);
+}
+
+/* For screens between tablet and laptop */
 @media screen and (min-width: 1025px) and (max-width: 1365px) {
   #container #test-sentence {
     display: flex;
@@ -315,11 +301,12 @@ li.incorrect {
     font-size: 1.7rem;
     letter-spacing: 0.2rem;
   }
-  #blink-cursor {
+  #test-sentence #blink-cursor {
     top: -14px;
   }
 }
 
+/* For screens between mobile and tablet */
 @media screen and (min-width: 541px) and (max-width: 1024px) {
   body {
     padding: 3rem 3rem 3rem 3rem;
@@ -331,68 +318,68 @@ li.incorrect {
   header #logo {
     font-size: 7vw;
   }
-  #reload-message {
+  header #reload-message {
     font-size: 3vw;
     position: absolute;
     bottom: -10vw;
     width: 100%;
     text-align: center;
   }
-  .wpm-container {
+  #info-container #wpm-container {
     font-size: 3vw;
   }
-  #wpm-digit {
+  #info-container #wpm-digit {
     font-size: 6vw;
   }
-  .accuracy-container {
+  #info-container #accuracy-container {
     font-size: 3vw;
   }
-  #acc-digit {
+  #info-container #acc-digit {
     font-size: 6vw;
   }
   #container {
     margin-top: 4vw;
   }
 
-  #test-sentence {
+  #container #test-sentence {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     line-height: 3rem;
   }
 
-  #cursor-container {
+  #test-sentence #cursor-container {
     display: none;
   }
 
-  #keyboard {
+  #keyboard-container #keyboard {
     display: none;
   }
 
-  #toggling {
+  footer #toggling {
     font-size: 2.5vw;
   }
 
-  .toggle-switch {
+  #toggling .toggle-switch {
     width: 6vw;
     height: 3.1vw;
     margin-left: 0.5rem;
   }
 
-  .slider::before {
+  #toggling .slider::before {
     height: 2.8vw;
     width: 2.8vw;
     left: 0.2rem;
     top: 0.2rem;
   }
 
-  .toggle-switch input:checked + .slider::before {
+  #toggling .toggle-switch input:checked + .slider::before {
     transform: translateX(2.8vw);
   }
 }
 
 @media screen and (width: 1024px) {
-  #keyboard {
+  #keyboard-container #keyboard {
     display: block;
   }
 }
@@ -408,23 +395,23 @@ li.incorrect {
   header #logo {
     font-size: 8vw;
   }
-  #reload-message {
+  header #reload-message {
     font-size: 4vw;
     position: absolute;
     bottom: -8vw;
     width: 100%;
     text-align: center;
   }
-  .wpm-container {
+  #info-container #wpm-container {
     font-size: 4vw;
   }
-  #wpm-digit {
+  #info-container #wpm-digit {
     font-size: 8vw;
   }
-  .accuracy-container {
+  #info-container #accuracy-container {
     font-size: 4vw;
   }
-  #acc-digit {
+  #info-container #acc-digit {
     font-size: 8vw;
   }
 
@@ -437,7 +424,7 @@ li.incorrect {
     line-height: 2rem;
   }
 
-  #container #keyboard {
+  #keyboard-container #keyboard {
     display: none;
   }
 
@@ -445,31 +432,25 @@ li.incorrect {
     font-size: 6vw;
   }
 
-  #cursor-container {
+  #test-sentence #cursor-container {
     display: none;
   }
 
-  .toggle-switch {
+  #toggling .toggle-switch {
     width: 10vw;
     height: 5.1vw;
     margin-left: 0.5rem;
   }
 
-  .slider::before {
+  #toggling span.slider::before {
     height: 3.8vw;
     width: 3.8vw;
     left: 0.2rem;
     top: 0.2rem;
   }
 
-  .toggle-switch input:checked + .slider::before {
+  #toggling .toggle-switch input:checked + .slider::before {
     transform: translateX(4.8vw);
-  }
-}
-
-@media screen and (max-width: 1024px) and (orientation: landscape) {
-  #keyboard {
-    display: none;
   }
 }
 
@@ -479,5 +460,8 @@ li.incorrect {
   }
   #container {
     margin-bottom: 2rem;
+  }
+  #keyboard-container #keyboard {
+    display: none;
   }
 }
