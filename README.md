@@ -17,6 +17,12 @@ An engaging and fun typing game designed to help users improve their typing spee
 - **REST API**: Quotes are fetched using a RESTful API, sourced from a GitHub Gist collection.
 - **Conditional Fetching**: The application gracefully handles request timeouts by falling back to a default sentence if the API request fails.
 
+## Learning
+
+- Importance of event listener cleanup during component mount/unmount.
+- Abort controller - To halt fetching of repeated request of resource in case of failure
+- Web Storage API - To cache the data to avoid frequest API calls
+
 ## Installation
 
 To run this project locally, follow these steps:
@@ -36,9 +42,9 @@ To run this project locally, follow these steps:
    npm init && npm run dev
    ```
 
-## Tech Stack
+## Tech Stack -
 
 - **HTML**: For the structure of the game interface.
 - **CSS**: For styling the game elements and ensuring responsiveness.
 - **JavaScript**: To handle dynamic quote fetching, typing challenge logic, and user interactions.
-- GitHub Gist API: To provide a collection of quotes dynamically.
+- **GitHub Gist** : To store a collection of quotes and fetch dynamically.

@@ -16,7 +16,7 @@ window.addEventListener("load", function () {
   let sentenceIndex = 0; // keeps track of current sentence fetched from localStorage
 
   if (sessionStorage.getItem("sentenceTrack") !== null) {
-    sentenceIndex = this.sessionStorage.getItem("sentenceTrack");
+    sentenceIndex = sessionStorage.getItem("sentenceTrack");
   } else {
     sessionStorage.setItem("sentenceTrack", sentenceIndex);
   }
