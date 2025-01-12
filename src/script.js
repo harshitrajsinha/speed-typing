@@ -8,13 +8,18 @@ window.addEventListener("load", function () {
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-type input");
   let testSentence = document.getElementById("test-sentence");
+  let audio = document.getElementById("startSound");
   let isCharAllowed = true;
   let isFirstCharTyped;
   let startTime, initialCursorPos, endTime;
   let isAborted = false;
   let sentenceIndex = 0; // keeps track of current sentence fetched from localStorage
 
-  let audio = document.getElementById("startSound");
+  if (sessionStorage.getItem("sentenceTrack") !== null) {
+    sentenceIndex = this.sessionStorage.getItem("sentenceTrack");
+  } else {
+    sessionStorage.setItem("sentenceTrack", sentenceIndex);
+  }
 
   // functionality for toggle switch
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -24,6 +29,7 @@ window.addEventListener("load", function () {
       if (targetElem.id === "input-char") {
         isCharAllowed = !isCharAllowed;
         sentenceIndex--;
+        sessionStorage.setItem("sentenceTrack", sentenceIndex);
         newGame();
       } else if (targetElem.id === "input-sound") {
         targetElem.checked ? audio.play() : audio.pause();
@@ -32,8 +38,8 @@ window.addEventListener("load", function () {
   });
 
   // functionality to pause audio on tab/window change
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
+  document.addEventListener("visibilitychange", (event) => {
+    if (event.target.visibilityState !== "visible") {
       document.getElementById("input-sound").checked = false;
       audio.pause();
     }
@@ -365,6 +371,7 @@ window.addEventListener("load", function () {
         }
       }
       const quoteObj = quotesList[sentenceIndex++];
+      sessionStorage.setItem("sentenceTrack", sentenceIndex);
       return quoteObj.quote;
     }
   }
@@ -408,7 +415,7 @@ window.addEventListener("load", function () {
     let sentence;
 
     // initialize game;
-    startGame();
+    startGame(); // will be called for every new game
 
     // Get sentence
     sentence = getSentence();
@@ -424,6 +431,7 @@ window.addEventListener("load", function () {
       }
       sentence = FB_SENTENCE; // initialize fallback sentence
       sentenceIndex = 0;
+      sessionStorage.setItem("sentenceTrack", sentenceIndex);
       storeSentence();
     }
 
