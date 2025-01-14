@@ -2,8 +2,7 @@ window.addEventListener("load", function () {
   console.log("DOM is loaded");
 
   const FB_SENTENCE = `type this line to find out how many words per minute or wpm you can type`; // fallback sentence in case quotes is not fetched
-  const GIST_URL = `https://api.github.com/gists`;
-  const SERVER_API_URL = `https://my-server-raj-sinha.vercel.app/api/quotes/v1/quotes`;
+  const SERVER_API_URL = `http://localhost:4000/api/quotes/v1/quotes`;
 
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-type input");
@@ -56,7 +55,6 @@ window.addEventListener("load", function () {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          url: GIST_URL,
           limit: 5,
         }),
         signal: controller.signal,
