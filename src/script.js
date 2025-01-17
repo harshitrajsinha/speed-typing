@@ -347,7 +347,7 @@ window.addEventListener("load", function () {
       const quote = await fetchSentence();
       if (quote) {
         toRetry = false;
-        sessionStorage.setItem("quotes", quote);
+        sessionStorage.setItem("quotes", JSON.stringify(quote));
       } else {
         toRetry = true;
         noTimesCalled++;
