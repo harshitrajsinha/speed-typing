@@ -52,108 +52,119 @@
   </head>
   <body>
     <audio
-      id="startSound"
+      id="windy-hill-music"
       src="./public/windy-hill.mp3"
       preload="auto"
       loop
     ></audio>
     <main>
       <header>
-        <div id="logo">Speed Typing</div>
-        <div id="reload-message">Refreshing in</div>
-        <div id="info-container">
-          <div id="wpm-container">
-            <span id="wpm-digit">0</span>&nbsp;WPM
+        <div class="logo">Speed Typing</div>
+        <div id="reload-message" aria-live="polite" aria-atomic="true">
+          Refreshing in
+        </div>
+        <div class="info">
+          <div class="info__wpm wpm" aria-label="words per minute data">
+            <span id="wpm__value">0</span>&nbsp;WPM
             <div>Speed</div>
           </div>
-          <div id="accuracy-container">
-            <span id="acc-digit">0</span>&nbsp;%
+          <div class="info__accuracy accuracy" aria-label="accuracy data">
+            <span id="accuracy__value">0</span>&nbsp;%
             <div>Accuracy</div>
           </div>
         </div>
       </header>
-      <div id="container">
-        <ul id="test-sentence">
-          <li id="cursor-container"><span id="blink-cursor">|</span></li>
+      <section>
+        <div id="words-container" aria-live="polite" aria-label="test sentence">
+          <div id="letter-tracker"></div>
           <!-- type this line to find out how many words per minute or wpm you can
           type -->
-        </ul>
-        <div id="user-type">
-          <input type="text" placeholder="type here" autofocus />
         </div>
-        <div id="keyboard-container">
-          <div id="keyboard">
-            <!-- <ul id="key-row-char">
-            <li class="key">~<span>`</span></li>
-            <li class="key">!<span>1</span></li>
-            <li class="key">@<span>2</span></li>
-            <li class="key">#<span>3</span></li>
-            <li class="key">$<span>4</span></li>
-            <li class="key">%<span>5</span></li>
-            <li class="key">^<span>6</span></li>
-            <li class="key">&<span>7</span></li>
-            <li class="key">*<span>8</span></li>
-            <li class="key">(<span>9</span></li>
-            <li class="key">)<span>0</span></li>
-            <li class="key">_<span>-</span></li>
-            <li class="key">+<span>=</span></li>
-            </ul> -->
-            <ul id="row-one" class="key-row">
-              <li id="q" class="key">Q<span>___</span></li>
-              <li id="w" class="key">W<span>___</span></li>
-              <li id="e" class="key">E<span>___</span></li>
-              <li id="r" class="key">R<span>___</span></li>
-              <li id="t" class="key">T<span>___</span></li>
-              <li id="y" class="key">Y<span>___</span></li>
-              <li id="u" class="key">U<span>___</span></li>
-              <li id="i" class="key">I<span>___</span></li>
-              <li id="o" class="key">O<span>___</span></li>
-              <li id="p" class="key">P<span>___</span></li>
-              <li id="{" class="key">{<span id="[">[</span></li>
-              <li id="}" class="key">}<span id="]">]</span></li>
-              <li id="|" class="key">|<span id="bksh">\</span></li>
-            </ul>
-            <ul id="row-two" class="key-row">
-              <li id="a" class="key">A<span>___</span></li>
-              <li id="s" class="key">S<span>___</span></li>
-              <li id="d" class="key">D<span>___</span></li>
-              <li id="f" class="key">F<span>___</span></li>
-              <li id="g" class="key">G<span>___</span></li>
-              <li id="h" class="key">H<span>___</span></li>
-              <li id="j" class="key">J<span>___</span></li>
-              <li id="k" class="key">K<span>___</span></li>
-              <li id="l" class="key">L<span>___</span></li>
-              <li id="apos" class="key">&apos;<span id="smcln">;</span></li>
-              <li id="dbqt" class="key">&quot;<span id="snqt">'</span></li>
-            </ul>
-            <ul id="row-three" class="key-row">
-              <li id="z" class="key">Z<span>___</span></li>
-              <li id="x" class="key">X<span>___</span></li>
-              <li id="c" class="key">C<span>___</span></li>
-              <li id="v" class="key">V<span>___</span></li>
-              <li id="b" class="key">B<span>___</span></li>
-              <li id="n" class="key">N<span>___</span></li>
-              <li id="m" class="key">M<span>___</span></li>
-              <li id="&lt;" class="key">&lt;<span id="comma">,</span></li>
-              <li id="&gt;" class="key">&gt;<span id="fstp">.</span></li>
-              <li id="qmrk" class="key">?<span id="fdsh">/</span></li>
-            </ul>
-            <ul id="row-space" class="key-row">
-              <li id="space" class="key">|____|</li>
-            </ul>
-          </div>
+        <div id="user-input">
+          <input type="text" tabindex="0" placeholder="type here" autofocus />
         </div>
-      </div>
+        <div id="keyboard">
+          <ul class="keyboard__row-one keys-row">
+            <li id="key-tab" class="key">Tab</li>
+            <li id="q" class="key to-decorate-key">Q</li>
+            <li id="w" class="key to-decorate-key">W</li>
+            <li id="e" class="key to-decorate-key">E</li>
+            <li id="r" class="key to-decorate-key">R</li>
+            <li id="t" class="key to-decorate-key">T</li>
+            <li id="y" class="key to-decorate-key">Y</li>
+            <li id="u" class="key to-decorate-key">U</li>
+            <li id="i" class="key to-decorate-key">I</li>
+            <li id="o" class="key to-decorate-key">O</li>
+            <li id="p" class="key to-decorate-key">P</li>
+            <li id="{" class="key">{<span id="[">[</span></li>
+            <li id="}" class="key">}<span id="]">]</span></li>
+            <li id="|" class="key">|<span id="bksh">\</span></li>
+          </ul>
+          <ul class="keyboard__row-two keys-row">
+            <li id="key-capsLk" class="key">CapsLk</li>
+            <li id="a" class="key to-decorate-key">A</li>
+            <li id="s" class="key to-decorate-key">S</li>
+            <li id="d" class="key to-decorate-key">D</li>
+            <li id="f" class="key to-decorate-key">F</li>
+            <li id="g" class="key to-decorate-key">G</li>
+            <li id="h" class="key to-decorate-key">H</li>
+            <li id="j" class="key to-decorate-key">J</li>
+            <li id="k" class="key to-decorate-key">K</li>
+            <li id="l" class="key to-decorate-key">L</li>
+            <li id="apos" class="key">&apos;<span id="smcln">;</span></li>
+            <li id="dbqt" class="key">&quot;<span id="snqt">'</span></li>
+            <li id="key-enter" class="key">Enter</li>
+          </ul>
+          <ul class="keyboard__row-three keys-row">
+            <li id="key-lshift" class="key">Shift</li>
+            <li id="z" class="key to-decorate-key">Z</li>
+            <li id="x" class="key to-decorate-key">X</li>
+            <li id="c" class="key to-decorate-key">C</li>
+            <li id="v" class="key to-decorate-key">V</li>
+            <li id="b" class="key to-decorate-key">B</li>
+            <li id="n" class="key to-decorate-key">N</li>
+            <li id="m" class="key to-decorate-key">M</li>
+            <li id="&lt;" class="key">&lt;<span id="comma">,</span></li>
+            <li id="&gt;" class="key">&gt;<span id="period">.</span></li>
+            <li id="qmrk" class="key">?<span id="fdsh">/</span></li>
+            <li id="key-rshift" class="key">Shift</li>
+          </ul>
+          <ul class="keyboard__row-four keys-row">
+            <li id="key-space" class="key"></li>
+          </ul>
+        </div>
+      </section>
+      <!-- <div class="finger">
+        <div id="left">
+          <img class="row-two" src="./public/fingers/left-fingers/c.png" />
+          <img class="row-three" src="./public/fingers/c.png" />
+        </div>
+        <div id="right">
+          <img src="./public/fingers/right-fingers/j.png" />
+        </div>
+      </div> -->
       <footer>
-        <div id="toggling">
-          <div class="switch-container" id="switch-char">
+        <div class="switch-container">
+          <div
+            class="switch-container__switch"
+            id="switch-char"
+            role="switch"
+            aria-label="character toggle switch"
+            tabindex="1"
+          >
             <label>Character</label>
             <label class="toggle-switch">
               <input id="input-char" type="checkbox" checked />
               <span class="slider active"></span>
             </label>
           </div>
-          <div class="switch-container" id="switch-sound">
+          <div
+            class="switch-container__switch"
+            id="switch-sound"
+            role="switch"
+            aria-label="sound toggle switch"
+            tabindex="2"
+          >
             <label>Sound</label>
             <label class="toggle-switch">
               <input id="input-sound" class="active" type="checkbox" />

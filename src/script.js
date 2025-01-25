@@ -5,14 +5,21 @@ window.addEventListener("load", function () {
   const SERVER_API_URL = `https://my-server-raj-sinha.vercel.app/api/quotes/v1/quotes`;
 
   let noTimesCalled = 0; // no of times API request is made
-  let userInputField = document.querySelector("div#user-type input");
-  let testSentence = document.getElementById("test-sentence");
-  let audio = document.getElementById("startSound");
+  let userInputField = document.querySelector("div#user-input input");
+  let wordsContainer = document.getElementById("words-container");
+  let audio = document.getElementById("windy-hill-music");
   let isCharAllowed = true;
   let isFirstCharTyped;
-  let startTime, initialCursorPos, endTime;
+  let startTime, initialCursorPosLeft, initialCursorPosTop, endTime;
   let isAborted = false;
   let sentenceIndex = 0; // keeps track of current sentence fetched from localStorage
+  const leftCursor = window
+    .getComputedStyle(document.getElementById("letter-tracker"))
+    .getPropertyValue("left");
+  const topCursor = window
+    .getComputedStyle(document.getElementById("letter-tracker"))
+    .getPropertyValue("top");
+  console.log(topCursor);
 
   if (sessionStorage.getItem("sentenceTrack") !== null) {
     sentenceIndex = sessionStorage.getItem("sentenceTrack");
@@ -91,10 +98,10 @@ window.addEventListener("load", function () {
   // function to calc accuracy
   function calculateAccuracy() {
     const totalChars = document.querySelectorAll(
-      "#test-sentence .letter"
+      "#words-container .letter"
     ).length;
     const incorrectChars = document.querySelectorAll(
-      "#test-sentence .incorrect"
+      "#words-container .incorrect"
     ).length;
     return totalChars
       ? (((totalChars - incorrectChars) / totalChars) * 100).toPrecision(3)
@@ -148,30 +155,41 @@ window.addEventListener("load", function () {
   function gameOver(startTime, endTime) {
     userInputField.removeEventListener("input", handleUserInput);
     const timeTaken = Math.floor((endTime - startTime) / 1000);
-    const blinkCursor = document.getElementById("blink-cursor");
+    const blinkCursor = document.getElementById("letter-tracker");
     if (userInputField) {
       userInputField.disabled = true; // disable input field
     }
     if (blinkCursor) {
       blinkCursor.style.display = "none"; // remove blink cursor
     }
-    document.getElementById("wpm-digit").textContent = String(
+    document.getElementById("wpm__value").textContent = String(
       calculateWPM(timeTaken)
     );
-    document.getElementById("acc-digit").textContent = calculateAccuracy();
+    document.getElementById("accuracy__value").textContent =
+      calculateAccuracy();
     showReloadMsg();
   }
 
   // moving blink cursor to next character
-  function moveCursor(currentLetter, initialCursorPos) {
-    let cursor = document.getElementById("blink-cursor");
+  function moveCursor(
+    currentLetter,
+    initialCursorPosLeft,
+    initialCursorPosTop
+  ) {
+    let cursor = document.getElementById("letter-tracker");
     if (cursor) {
       cursor.style.left = `${
         parseInt(currentLetter.getBoundingClientRect().left) -
-        initialCursorPos -
+        initialCursorPosLeft -
         10
       }px`;
+      cursor.style.top = `${
+        parseInt(currentLetter.getBoundingClientRect().top) -
+        initialCursorPosTop -
+        parseInt(topCursor)
+      }px`;
     }
+    console.log(topCursor);
   }
 
   // function to abort game
@@ -184,7 +202,7 @@ window.addEventListener("load", function () {
     let currentLetterText;
     switch (character) {
       case "&nbsp;":
-        currentLetterText = "space";
+        currentLetterText = "key-space";
         break;
       case ":":
         currentLetterText = "apos";
@@ -205,7 +223,7 @@ window.addEventListener("load", function () {
         currentLetterText = "comma";
         break;
       case ".":
-        currentLetterText = "fstp";
+        currentLetterText = "period";
         break;
       case "/":
         currentLetterText = "fdsh";
@@ -239,6 +257,7 @@ window.addEventListener("load", function () {
 
   function handleUserInput(e) {
     let isValidSpace = false;
+    let currentWord = document.querySelector("ul.current");
     let currentLetter = document.querySelector("li.current");
     if (!isFirstCharTyped) {
       startTime = new Date().getTime(); // start timer
@@ -255,25 +274,35 @@ window.addEventListener("load", function () {
     }
 
     if (
-      e.data === currentLetter.textContent ||
-      isValidSpace ||
-      (e.data === "'" &&
+      e.data === currentLetter.textContent || //validating for letter
+      isValidSpace || // validating for space
+      (e.data === "'" && // validating for single quote character
         (currentLetter.textContent === "’" ||
           currentLetter.textContent === "'"))
     ) {
       let prevLetterText = currentLetter.innerHTML;
       if (!currentLetter.classList.contains("incorrect")) {
+        // validation for re-type
         currentLetter.classList.add("correct");
       }
-      if (currentLetter.nextSibling) {
+      if (currentWord.nextSibling || currentLetter.nextSibling) {
         currentLetter.classList.remove("current");
-        currentLetter.nextSibling.classList.add("current");
-        currentLetter = document.querySelector("li.current"); // re-initialize currentLetter
+        if (currentLetter.nextSibling) {
+          // if letter still present in the word
+          currentLetter.nextSibling.classList.add("current");
+        } else {
+          // move to next word
+          currentWord.classList.remove("current");
+          currentWord.nextSibling.classList.add("current");
+          currentWord.nextSibling.firstChild.classList.add("current");
+          currentWord = document.querySelector("ul.current"); // re-initialize current word
+        }
+        currentLetter = document.querySelector("li.current"); // re-initialize current letter
         let currentLetterText = currentLetter.innerHTML;
-        activeInactiveKeys(prevLetterText, "inactive");
-        activeInactiveKeys(currentLetterText, "active");
+        activeInactiveKeys(prevLetterText.toLocaleLowerCase(), "inactive");
+        activeInactiveKeys(currentLetterText.toLocaleLowerCase(), "active");
         // move cursor to next letter
-        moveCursor(currentLetter, initialCursorPos);
+        moveCursor(currentLetter, initialCursorPosLeft, initialCursorPosTop);
 
         // clear input field on space
         if (isValidSpace) {
@@ -281,7 +310,7 @@ window.addEventListener("load", function () {
           isValidSpace = false;
         }
       } else {
-        activeInactiveKeys(prevLetterText, "inactive");
+        activeInactiveKeys(prevLetterText.toLocaleLowerCase(), "inactive");
         currentLetter.classList.remove("current");
         currentLetter = null;
         endTime = new Date().getTime();
@@ -293,15 +322,15 @@ window.addEventListener("load", function () {
   }
 
   // Adding each character into html element
-  function addCharacter(letter, letterId) {
-    const elem = document.createElement("li");
-    elem.id = letterId;
-    elem.classList.add("letter");
+  function createLetterElem(letter, letterId) {
+    const letterElem = document.createElement("li"); // create li element
+    letterElem.id = letterId;
+    letterElem.classList.add("letter");
     if (!letterId) {
-      elem.classList.add("current");
+      letterElem.classList.add("current");
     }
-    elem.innerHTML = letter;
-    return elem;
+    letterElem.innerHTML = letter;
+    return letterElem;
   }
 
   // Split sentence into characters
@@ -309,7 +338,11 @@ window.addEventListener("load", function () {
     return sentence
       .split("")
       .map((character) =>
-        character !== " " ? character.toLowerCase() : "&nbsp;"
+        character !== " "
+          ? isCharAllowed
+            ? character
+            : character.toLowerCase()
+          : "&nbsp;"
       )
       .filter((character) => {
         if (!isCharAllowed) {
@@ -325,15 +358,35 @@ window.addEventListener("load", function () {
   // function to convert sentence to inidividual character
   function sentenceToChar(sentence) {
     const fragment = document.createDocumentFragment();
-
     // extract array of valid chars from sentence
-    const letters = getChars(sentence);
+    const lettersList = getChars(sentence);
     //insert each char into document within li element
-    if (testSentence) {
-      letters.forEach((letter, index) => {
-        fragment.appendChild(addCharacter(letter, index));
+    if (wordsContainer) {
+      let wordElem = document.createElement("ul"); // create ul element for word
+      wordElem.classList.add("word");
+      lettersList.forEach((letter, index) => {
+        if (!index) {
+          // if first letter => first word
+          wordElem.classList.add("current");
+        }
+        if (letter !== "&nbsp;") {
+          wordElem.appendChild(createLetterElem(letter, index));
+        } else {
+          fragment.appendChild(wordElem); // add word to fragment
+          wordElem = document.createElement("ul"); // create new ul element
+          wordElem.classList.add("word");
+          const spaceContainer = document.createElement("ul"); // create ul element for space
+          const spaceElem = document.createElement("li");
+          spaceElem.ariaLabel = "space";
+          spaceElem.id = index;
+          spaceElem.classList.add("letter");
+          spaceElem.innerHTML = letter;
+          spaceContainer.appendChild(spaceElem);
+          fragment.appendChild(spaceContainer);
+        }
       });
-      testSentence.appendChild(fragment);
+      fragment.appendChild(wordElem);
+      wordsContainer.appendChild(fragment);
     }
   }
 
@@ -355,31 +408,44 @@ window.addEventListener("load", function () {
     } while (toRetry && noTimesCalled < 4); // limit api call
   }
 
-  // Get sentence from localStorage
-  function getSentence() {
-    const quotesList = JSON.parse(sessionStorage.getItem("quotes"));
-    if (quotesList && sentenceIndex < quotesList.length) {
-      const charCheckbox = document.querySelector("#switch-char");
-      if (charCheckbox) {
-        charCheckbox.querySelector("input").disabled = false; // enable character toggle
-        const charCheckboxSlider = charCheckbox.querySelector("span.slider");
+  // toggle 'character' button
+  function charToggle(toActivate) {
+    const charCheckbox = document.querySelector("#switch-char");
+    if (charCheckbox) {
+      charCheckbox.querySelector("input").disabled = toActivate; // enable/disable character toggle
+      const charCheckboxSlider = charCheckbox.querySelector("span.slider");
+      if (!toActivate) {
         if (charCheckboxSlider.classList.contains("inactive")) {
           charCheckboxSlider.classList.remove("inactive");
           charCheckboxSlider.classList.add("active");
         }
+      } else {
+        if (charCheckboxSlider.classList.contains("active")) {
+          charCheckboxSlider.classList.remove("active");
+          charCheckboxSlider.classList.add("inactive");
+        }
       }
+    }
+    return;
+  }
+
+  // Get sentence from localStorage
+  function getSentence() {
+    const quotesList = JSON.parse(sessionStorage.getItem("quotes"));
+    if (quotesList && sentenceIndex < quotesList.length) {
+      charToggle(false); // enable character toggle
       const quoteObj = quotesList[sentenceIndex++];
       sessionStorage.setItem("sentenceTrack", sentenceIndex);
       return quoteObj.quote;
     }
   }
 
-  // starting game by clearing test sentence except blink cursor
-  // will be called for every new game
+  // start game by clearing test sentence except blink cursor
   function startGame() {
+    // reset variables
     isFirstCharTyped = false;
     startTime = 0;
-    initialCursorPos = 0;
+    (initialCursorPosLeft = 0), (initialCursorPosTop = 0);
     endTime = 0;
 
     // deactivate any active key from keyboard layout
@@ -390,19 +456,22 @@ window.addEventListener("load", function () {
       activeKey.classList.remove("active");
     }
 
+    // disable user input field
     if (userInputField) {
       userInputField.disabled = false;
       userInputField.value = null;
       userInputField.focus();
     }
 
-    if (testSentence) {
-      const cursorContainer = testSentence.firstElementChild; // copy an instance of blink cursor
-      testSentence.replaceChildren(); // clear if sentence already exists
-      if (cursorContainer) {
-        testSentence.appendChild(cursorContainer); // add blink cursor element
-        cursorContainer.firstElementChild.style.display = "inline";
-        cursorContainer.firstElementChild.style.left = "-5px";
+    // reset test sentence element
+    if (wordsContainer) {
+      const blinkCursor = wordsContainer.firstElementChild; // copy an instance of letter tracker
+      wordsContainer.replaceChildren(); // clear if sentence already exists
+      if (blinkCursor) {
+        wordsContainer.appendChild(blinkCursor); // add letter tracker element
+        blinkCursor.style.display = "inline";
+        blinkCursor.style.left = "-5px";
+        blinkCursor.style.top = "0px";
       }
     }
   }
@@ -418,15 +487,7 @@ window.addEventListener("load", function () {
     // Get sentence
     sentence = getSentence();
     if (!sentence) {
-      const charCheckbox = document.querySelector("#switch-char");
-      if (charCheckbox) {
-        charCheckbox.querySelector("input").disabled = true; // disable character toggle
-        const charCheckboxSlider = charCheckbox.querySelector("span.slider");
-        if (charCheckboxSlider.classList.contains("active")) {
-          charCheckboxSlider.classList.remove("active");
-          charCheckboxSlider.classList.add("inactive");
-        }
-      }
+      charToggle(true); // disable character toggle
       sentence = FB_SENTENCE; // initialize fallback sentence
       sentenceIndex = 0;
       sessionStorage.setItem("sentenceTrack", sentenceIndex);
@@ -438,11 +499,14 @@ window.addEventListener("load", function () {
 
     let currentLetter = document.querySelector("li.current");
     let currentLetterText = currentLetter.innerHTML;
-    activeInactiveKeys(currentLetterText, "active");
+    activeInactiveKeys(currentLetterText.toLocaleLowerCase(), "active");
 
     // initialize cursor position
-    initialCursorPos = parseInt(
-      document.getElementById("blink-cursor").getBoundingClientRect().left
+    initialCursorPosLeft = parseInt(
+      document.getElementById("letter-tracker").getBoundingClientRect().left
+    );
+    initialCursorPosTop = parseInt(
+      document.getElementById("letter-tracker").getBoundingClientRect().top
     );
 
     //get user input
