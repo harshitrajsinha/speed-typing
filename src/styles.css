@@ -122,6 +122,7 @@ main section {
 
 #letter-tracker {
   position: relative;
+  top: 0px;
 }
 
 #letter-tracker::after {
@@ -131,6 +132,9 @@ main section {
   color: #0004f9;
 }
 
+#words-container ul {
+  display: inline;
+}
 li.letter {
   display: inline;
 }
@@ -381,9 +385,9 @@ footer .switch-container {
     font-size: 1.7rem;
     letter-spacing: 0.2rem;
   }
-  #words-container #letter-tracker {
+  /* #words-container #letter-tracker {
     top: -14px;
-  }
+  } */
 }
 
 /* For screens between mobile and tablet */
@@ -429,7 +433,7 @@ footer .switch-container {
   }
 
   #words-container #letter-tracker {
-    display: none;
+    top: 6px;
   }
 
   #keyboard {
@@ -504,16 +508,16 @@ footer .switch-container {
     line-height: 2rem;
   }
 
+  #words-container #letter-tracker {
+    top: 5px;
+  }
+
   #keyboard {
     display: none;
   }
 
   #user-input input {
     font-size: 6vw;
-  }
-
-  #words-container #letter-tracker {
-    display: none;
   }
 
   .switch-container .toggle-switch {
@@ -541,6 +545,7 @@ footer .switch-container {
   section {
     margin-bottom: 2rem;
   }
+
   #keyboard {
     display: none;
   }
