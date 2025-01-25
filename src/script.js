@@ -5,9 +5,9 @@ window.addEventListener("load", function () {
   const SERVER_API_URL = `https://my-server-raj-sinha.vercel.app/api/quotes/v1/quotes`;
 
   let noTimesCalled = 0; // no of times API request is made
-  let userInputField = document.querySelector("div#user-type input");
-  let testSentence = document.getElementById("test-sentence");
-  let audio = document.getElementById("startSound");
+  let userInputField = document.querySelector("div#user-input input");
+  let testSentence = document.getElementById("words-container");
+  let audio = document.getElementById("windy-hill-music");
   let isCharAllowed = true;
   let isFirstCharTyped;
   let startTime, initialCursorPos, endTime;
@@ -91,10 +91,10 @@ window.addEventListener("load", function () {
   // function to calc accuracy
   function calculateAccuracy() {
     const totalChars = document.querySelectorAll(
-      "#test-sentence .letter"
+      "#words-container .letter"
     ).length;
     const incorrectChars = document.querySelectorAll(
-      "#test-sentence .incorrect"
+      "#words-container .incorrect"
     ).length;
     return totalChars
       ? (((totalChars - incorrectChars) / totalChars) * 100).toPrecision(3)
@@ -148,23 +148,24 @@ window.addEventListener("load", function () {
   function gameOver(startTime, endTime) {
     userInputField.removeEventListener("input", handleUserInput);
     const timeTaken = Math.floor((endTime - startTime) / 1000);
-    const blinkCursor = document.getElementById("blink-cursor");
+    const blinkCursor = document.getElementById("letter-tracker");
     if (userInputField) {
       userInputField.disabled = true; // disable input field
     }
     if (blinkCursor) {
       blinkCursor.style.display = "none"; // remove blink cursor
     }
-    document.getElementById("wpm-digit").textContent = String(
+    document.getElementById("wpm__value").textContent = String(
       calculateWPM(timeTaken)
     );
-    document.getElementById("acc-digit").textContent = calculateAccuracy();
+    document.getElementById("accuracy__value").textContent =
+      calculateAccuracy();
     showReloadMsg();
   }
 
   // moving blink cursor to next character
   function moveCursor(currentLetter, initialCursorPos) {
-    let cursor = document.getElementById("blink-cursor");
+    let cursor = document.getElementById("letter-tracker");
     if (cursor) {
       cursor.style.left = `${
         parseInt(currentLetter.getBoundingClientRect().left) -
@@ -205,7 +206,7 @@ window.addEventListener("load", function () {
         currentLetterText = "comma";
         break;
       case ".":
-        currentLetterText = "fstp";
+        currentLetterText = "period";
         break;
       case "/":
         currentLetterText = "fdsh";
@@ -294,8 +295,11 @@ window.addEventListener("load", function () {
 
   // Adding each character into html element
   function addCharacter(letter, letterId) {
-    const elem = document.createElement("li");
+    const elem = document.createElement("li"); // create li element
     elem.id = letterId;
+    if (letter === "&nbsp;") {
+      elem.ariaLabel = "space";
+    }
     elem.classList.add("letter");
     if (!letterId) {
       elem.classList.add("current");
@@ -355,28 +359,41 @@ window.addEventListener("load", function () {
     } while (toRetry && noTimesCalled < 4); // limit api call
   }
 
-  // Get sentence from localStorage
-  function getSentence() {
-    const quotesList = JSON.parse(sessionStorage.getItem("quotes"));
-    if (quotesList && sentenceIndex < quotesList.length) {
-      const charCheckbox = document.querySelector("#switch-char");
-      if (charCheckbox) {
-        charCheckbox.querySelector("input").disabled = false; // enable character toggle
-        const charCheckboxSlider = charCheckbox.querySelector("span.slider");
+  // toggle 'character' button
+  function charToggle(toActivate) {
+    const charCheckbox = document.querySelector("#switch-char");
+    if (charCheckbox) {
+      charCheckbox.querySelector("input").disabled = toActivate; // enable/disable character toggle
+      const charCheckboxSlider = charCheckbox.querySelector("span.slider");
+      if (!toActivate) {
         if (charCheckboxSlider.classList.contains("inactive")) {
           charCheckboxSlider.classList.remove("inactive");
           charCheckboxSlider.classList.add("active");
         }
+      } else {
+        if (charCheckboxSlider.classList.contains("active")) {
+          charCheckboxSlider.classList.remove("active");
+          charCheckboxSlider.classList.add("inactive");
+        }
       }
+    }
+    return;
+  }
+
+  // Get sentence from localStorage
+  function getSentence() {
+    const quotesList = JSON.parse(sessionStorage.getItem("quotes"));
+    if (quotesList && sentenceIndex < quotesList.length) {
+      charToggle(false); // enable character toggle
       const quoteObj = quotesList[sentenceIndex++];
       sessionStorage.setItem("sentenceTrack", sentenceIndex);
       return quoteObj.quote;
     }
   }
 
-  // starting game by clearing test sentence except blink cursor
-  // will be called for every new game
+  // start game by clearing test sentence except blink cursor
   function startGame() {
+    // reset variables
     isFirstCharTyped = false;
     startTime = 0;
     initialCursorPos = 0;
@@ -390,19 +407,21 @@ window.addEventListener("load", function () {
       activeKey.classList.remove("active");
     }
 
+    // disable user input field
     if (userInputField) {
       userInputField.disabled = false;
       userInputField.value = null;
       userInputField.focus();
     }
 
+    // reset test sentence element
     if (testSentence) {
       const cursorContainer = testSentence.firstElementChild; // copy an instance of blink cursor
       testSentence.replaceChildren(); // clear if sentence already exists
       if (cursorContainer) {
         testSentence.appendChild(cursorContainer); // add blink cursor element
-        cursorContainer.firstElementChild.style.display = "inline";
-        cursorContainer.firstElementChild.style.left = "-5px";
+        cursorContainer.style.display = "inline";
+        cursorContainer.style.left = "-5px";
       }
     }
   }
@@ -418,15 +437,7 @@ window.addEventListener("load", function () {
     // Get sentence
     sentence = getSentence();
     if (!sentence) {
-      const charCheckbox = document.querySelector("#switch-char");
-      if (charCheckbox) {
-        charCheckbox.querySelector("input").disabled = true; // disable character toggle
-        const charCheckboxSlider = charCheckbox.querySelector("span.slider");
-        if (charCheckboxSlider.classList.contains("active")) {
-          charCheckboxSlider.classList.remove("active");
-          charCheckboxSlider.classList.add("inactive");
-        }
-      }
+      charToggle(true); // disable character toggle
       sentence = FB_SENTENCE; // initialize fallback sentence
       sentenceIndex = 0;
       sessionStorage.setItem("sentenceTrack", sentenceIndex);
@@ -442,7 +453,7 @@ window.addEventListener("load", function () {
 
     // initialize cursor position
     initialCursorPos = parseInt(
-      document.getElementById("blink-cursor").getBoundingClientRect().left
+      document.getElementById("letter-tracker").getBoundingClientRect().left
     );
 
     //get user input
