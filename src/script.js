@@ -1,3 +1,5 @@
+import getHands from "./hands.js";
+
 window.addEventListener("load", function () {
   console.log("DOM is loaded");
 
@@ -19,7 +21,6 @@ window.addEventListener("load", function () {
   const topCursor = window
     .getComputedStyle(document.getElementById("letter-tracker"))
     .getPropertyValue("top");
-  console.log(topCursor);
 
   if (sessionStorage.getItem("sentenceTrack") !== null) {
     sentenceIndex = sessionStorage.getItem("sentenceTrack");
@@ -189,12 +190,27 @@ window.addEventListener("load", function () {
         parseInt(topCursor)
       }px`;
     }
-    console.log(topCursor);
   }
 
   // function to abort game
   function abortGame() {
     isAborted = true;
+  }
+
+  function createImageElem(attributes) {
+    const imgElem = document.createElement("img");
+    imgElem.src = attributes[0];
+    imgElem.classList.add(attributes[1]);
+    return imgElem;
+  }
+
+  // function to show hands as per key
+  function handsToProcess(key) {
+    const { leftHand, rightHand } = getHands(String(key));
+    document.getElementById("left").replaceChildren();
+    document.getElementById("right").replaceChildren();
+    document.getElementById("left").append(createImageElem(leftHand));
+    document.getElementById("right").append(createImageElem(rightHand));
   }
 
   // function to highlight keyboard keys
@@ -205,10 +221,7 @@ window.addEventListener("load", function () {
         currentLetterText = "key-space";
         break;
       case ":":
-        currentLetterText = "apos";
-        break;
-      case '"':
-        currentLetterText = "dbqt";
+        currentLetterText = "colon";
         break;
       case ";":
         currentLetterText = "smcln";
@@ -218,6 +231,9 @@ window.addEventListener("load", function () {
         break;
       case "’":
         currentLetterText = "snqt";
+        break;
+      case '"':
+        currentLetterText = "dbqt";
         break;
       case ",":
         currentLetterText = "comma";
@@ -251,6 +267,7 @@ window.addEventListener("load", function () {
         }
       }
     }
+    handsToProcess(currentLetterText);
 
     return;
   }
