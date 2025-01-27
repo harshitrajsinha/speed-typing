@@ -186,7 +186,7 @@ li.letter.incorrect {
   isolation: isolate;
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   margin: 0px 0px 8px;
 }
 
@@ -200,12 +200,14 @@ li.letter.incorrect {
 }
 
 #key-enter {
-  padding: 0 37px;
+  padding: 0 45px;
 }
 
-#key-lshift,
+#key-lshift {
+  padding: 0 48px;
+}
 #key-rshift {
-  padding: 0 50px;
+  padding: 0 55px;
 }
 
 #key-space {
@@ -340,38 +342,53 @@ footer .switch-container {
 .finger #left img {
   position: absolute;
   inset: 0;
-  opacity: 0.95;
-}
-
-.finger #left img.row-two {
-  position: absolute;
-  inset: 0;
-  top: 26rem;
-  left: 20rem;
-  width: 23rem;
-  height: 15rem;
+  opacity: 0.9;
 }
 
 .finger #left img.row-one {
   top: 23rem;
-  left: 21rem;
-  width: 26rem;
+  left: 24rem;
+  width: 24rem;
   height: 18rem;
+}
+
+.finger #right img.row-one {
+  top: 23rem;
+  left: 42rem;
+  width: 24rem;
+  height: 18rem;
+}
+
+.finger #left img.row-two {
+  top: 26rem;
+  left: 23rem;
+  width: 20rem;
+  height: 15rem;
+}
+
+.finger #right img.row-two {
+  top: 26rem;
+  left: 47rem;
+  width: 20rem;
+  height: 15rem;
 }
 
 .finger #left img.row-three {
   top: 27rem;
-  left: 21rem;
+  left: 23rem;
   width: 23rem;
   height: 14rem;
 }
 
-.finger #right img {
-  top: 26rem;
-  left: 44rem;
-  width: 23rem;
-  height: 15rem;
+.finger #right img.row-three {
+  top: 27rem;
+  left: 49rem;
+  width: 21rem;
+  height: 14rem;
 }
+
+/* left: 49rem;
+    width: 21rem; */
 
 /* For screens between tablet and laptop */
 @media screen and (min-width: 1025px) and (max-width: 1365px) {
@@ -460,6 +477,10 @@ footer .switch-container {
   .switch-container .toggle-switch input:checked + .slider::before {
     transform: translateX(2.8vw);
   }
+
+  .finger {
+    display: none;
+  }
 }
 
 @media screen and (width: 1024px) {
@@ -536,6 +557,9 @@ footer .switch-container {
   .switch-container .toggle-switch input:checked + .slider::before {
     transform: translateX(4.8vw);
   }
+  .finger {
+    display: none;
+  }
 }
 
 @media screen and (max-width: 1024px) and (orientation: landscape) {
@@ -547,6 +571,9 @@ footer .switch-container {
   }
 
   #keyboard {
+    display: none;
+  }
+  .finger {
     display: none;
   }
 }
