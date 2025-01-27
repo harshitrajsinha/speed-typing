@@ -5,6 +5,7 @@ window.addEventListener("load", function () {
 
   const FB_SENTENCE = `type this line to find out how many words per minute or wpm you can type`; // fallback sentence in case quotes is not fetched
   const SERVER_API_URL = `https://my-server-raj-sinha.vercel.app/api/quotes/v1/quotes`;
+  const TIMEOUT_DURATION = 10000;
 
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-input input");
@@ -15,9 +16,9 @@ window.addEventListener("load", function () {
   let startTime, initialCursorPosLeft, initialCursorPosTop, endTime;
   let isAborted = false;
   let sentenceIndex = 0; // keeps track of current sentence fetched from localStorage
-  const leftCursor = window
-    .getComputedStyle(document.getElementById("letter-tracker"))
-    .getPropertyValue("left");
+  // const leftCursor = window
+  //   .getComputedStyle(document.getElementById("letter-tracker"))
+  //   .getPropertyValue("left");
   const topCursor = window
     .getComputedStyle(document.getElementById("letter-tracker"))
     .getPropertyValue("top");
@@ -54,9 +55,12 @@ window.addEventListener("load", function () {
 
   // function to fetch quotes from github gist
   async function fetchSentence() {
+    let timeoutId;
     try {
       const controller = new AbortController(); // Abort controller to timeout API request
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // abort the request after 10 seconds of calling fetchSentence()
+      if (!timeoutId) {
+        timeoutId = setTimeout(() => controller.abort(), TIMEOUT_DURATION); // abort the request after 10 seconds of calling fetchSentence()
+      }
       const response = await fetch(SERVER_API_URL, {
         method: "POST",
         headers: {
@@ -79,11 +83,12 @@ window.addEventListener("load", function () {
         const data = await response.json();
 
         if (data) {
-          clearTimeout(timeoutId); // If the request is successfull in given time
           return data.quotes;
+        } else {
+          return null;
         }
       } else {
-        throw new Error("Response is not JSON:", contentType);
+        throw new Error("Response is not JSON");
       }
     } catch (error) {
       if (error.name === "AbortError") {
@@ -93,6 +98,9 @@ window.addEventListener("load", function () {
         console.error("Error occured", error.message);
         return null;
       }
+    } finally {
+      clearTimeout(timeoutId); // cleartimeout if request is successfull or failed withing given delay
+      timeoutId = null;
     }
   }
 
@@ -124,7 +132,6 @@ window.addEventListener("load", function () {
       "#switch-char span.slider"
     );
     document.querySelector("#switch-char input").disabled = true;
-    document.querySelector("#switch-char input").title = "harshit";
     if (charCheckboxSlider.classList.contains("active")) {
       charCheckboxSlider.classList.remove("active");
       charCheckboxSlider.classList.add("inactive");
@@ -157,6 +164,14 @@ window.addEventListener("load", function () {
     userInputField.removeEventListener("input", handleUserInput);
     const timeTaken = Math.floor((endTime - startTime) / 1000);
     const blinkCursor = document.getElementById("letter-tracker");
+    const leftHand = document.getElementById("left");
+    const rightHand = document.getElementById("right");
+    if (leftHand) {
+      leftHand.replaceChildren();
+    }
+    if (rightHand) {
+      rightHand.replaceChildren();
+    }
     if (userInputField) {
       userInputField.disabled = true; // disable input field
     }
@@ -172,7 +187,7 @@ window.addEventListener("load", function () {
   }
 
   // moving blink cursor to next character
-  function moveCursor(
+  function moveletterTracker(
     currentLetter,
     initialCursorPosLeft,
     initialCursorPosTop
@@ -281,7 +296,7 @@ window.addEventListener("load", function () {
       isFirstCharTyped = true;
     }
 
-    // checking if space character
+    // check if space character
     if (
       e.data &&
       e.data.charCodeAt(0) === 32 && // space key charcter code
@@ -319,7 +334,11 @@ window.addEventListener("load", function () {
         activeInactiveKeys(prevLetterText.toLocaleLowerCase(), "inactive");
         activeInactiveKeys(currentLetterText.toLocaleLowerCase(), "active");
         // move cursor to next letter
-        moveCursor(currentLetter, initialCursorPosLeft, initialCursorPosTop);
+        moveletterTracker(
+          currentLetter,
+          initialCursorPosLeft,
+          initialCursorPosTop
+        );
 
         // clear input field on space
         if (isValidSpace) {
@@ -350,16 +369,29 @@ window.addEventListener("load", function () {
     return letterElem;
   }
 
+  function createSpaceElem(letter, index) {
+    const spaceContainer = document.createElement("ul"); // create ul element for space
+    const spaceElem = document.createElement("li");
+    spaceElem.ariaLabel = "space";
+    spaceElem.id = index;
+    spaceElem.classList.add("letter");
+    spaceElem.innerHTML = letter;
+    spaceContainer.appendChild(spaceElem);
+    return spaceContainer;
+  }
+
+  function createWordElem() {
+    const wordElem = document.createElement("ul");
+    wordElem.classList.add("word");
+    return wordElem;
+  }
+
   // Split sentence into characters
   function getChars(sentence) {
     return sentence
       .split("")
       .map((character) =>
-        character !== " "
-          ? isCharAllowed
-            ? character
-            : character.toLowerCase()
-          : "&nbsp;"
+        character !== " " ? character.toLowerCase() : "&nbsp;"
       )
       .filter((character) => {
         if (!isCharAllowed) {
@@ -372,15 +404,12 @@ window.addEventListener("load", function () {
       });
   }
 
-  // function to convert sentence to inidividual character
-  function sentenceToChar(sentence) {
+  // function to convert sentence to inidividual words
+  function sentenceToWords(sentence) {
     const fragment = document.createDocumentFragment();
-    // extract array of valid chars from sentence
     const lettersList = getChars(sentence);
-    //insert each char into document within li element
     if (wordsContainer) {
-      let wordElem = document.createElement("ul"); // create ul element for word
-      wordElem.classList.add("word");
+      let wordElem = createWordElem(); // create ul element for word
       lettersList.forEach((letter, index) => {
         if (!index) {
           // if first letter => first word
@@ -390,19 +419,12 @@ window.addEventListener("load", function () {
           wordElem.appendChild(createLetterElem(letter, index));
         } else {
           fragment.appendChild(wordElem); // add word to fragment
-          wordElem = document.createElement("ul"); // create new ul element
-          wordElem.classList.add("word");
-          const spaceContainer = document.createElement("ul"); // create ul element for space
-          const spaceElem = document.createElement("li");
-          spaceElem.ariaLabel = "space";
-          spaceElem.id = index;
-          spaceElem.classList.add("letter");
-          spaceElem.innerHTML = letter;
-          spaceContainer.appendChild(spaceElem);
+          wordElem = createWordElem(); // create new ul element
+          const spaceContainer = createSpaceElem(letter, index);
           fragment.appendChild(spaceContainer);
         }
       });
-      fragment.appendChild(wordElem);
+      fragment.appendChild(wordElem); // for the last word
       wordsContainer.appendChild(fragment);
     }
   }
@@ -411,6 +433,7 @@ window.addEventListener("load", function () {
   async function storeSentence() {
     let toRetry = false;
     if (sessionStorage.getItem("quotes") !== null) {
+      // to fetch new sentences
       sessionStorage.removeItem("quotes");
     }
     do {
@@ -422,10 +445,10 @@ window.addEventListener("load", function () {
         toRetry = true;
         noTimesCalled++;
       }
-    } while (toRetry && noTimesCalled < 4); // limit api call
+    } while (toRetry && noTimesCalled < 4); // limit api call and retry fetch
   }
 
-  // toggle 'character' button
+  // toggle 'character' switch button
   function charToggle(toActivate) {
     const charCheckbox = document.querySelector("#switch-char");
     if (charCheckbox) {
@@ -466,11 +489,13 @@ window.addEventListener("load", function () {
     endTime = 0;
 
     // deactivate any active key from keyboard layout
-    const activeKey = document
+    const activeKeys = document
       .getElementById("keyboard")
-      .querySelector(".active");
-    if (activeKey) {
-      activeKey.classList.remove("active");
+      .querySelectorAll(".active");
+    if (activeKeys.length) {
+      activeKeys.forEach((key) => {
+        key.classList.remove("active");
+      });
     }
 
     // disable user input field
@@ -483,7 +508,7 @@ window.addEventListener("load", function () {
     // reset test sentence element
     if (wordsContainer) {
       const blinkCursor = wordsContainer.firstElementChild; // copy an instance of letter tracker
-      wordsContainer.replaceChildren(); // clear if sentence already exists
+      wordsContainer.replaceChildren(); // clear if sentence/letters already exists
       if (blinkCursor) {
         wordsContainer.appendChild(blinkCursor); // add letter tracker element
         blinkCursor.style.display = "inline";
@@ -508,11 +533,11 @@ window.addEventListener("load", function () {
       sentence = FB_SENTENCE; // initialize fallback sentence
       sentenceIndex = 0;
       sessionStorage.setItem("sentenceTrack", sentenceIndex);
-      storeSentence();
+      storeSentence(); // try to fetch sentence from server
     }
 
     // convert sentence to individual chars
-    sentenceToChar(sentence);
+    sentenceToWords(sentence);
 
     let currentLetter = document.querySelector("li.current");
     let currentLetterText = currentLetter.innerHTML;

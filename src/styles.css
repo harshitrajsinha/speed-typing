@@ -88,6 +88,7 @@ header .info {
 }
 
 main section {
+  position: relative;
   flex-grow: 1; /* to push footer to bottom of page */
 }
 
@@ -334,55 +335,51 @@ footer .switch-container {
   background-color: rgb(174, 172, 172);
 }
 
-.finger {
-  z-index: 10000;
-}
-
-.finger #right img,
-.finger #left img {
+.hands #right img,
+.hands #left img {
   position: absolute;
   inset: 0;
   opacity: 0.9;
 }
 
-.finger #left img.row-one {
-  top: 23rem;
-  left: 24rem;
+.hands #left img.row-one {
+  top: 2rem;
+  left: 3rem;
   width: 24rem;
   height: 18rem;
 }
 
-.finger #right img.row-one {
-  top: 23rem;
-  left: 42rem;
+.hands #right img.row-one {
+  top: 2rem;
+  left: 21rem;
   width: 24rem;
   height: 18rem;
 }
 
-.finger #left img.row-two {
-  top: 26rem;
-  left: 23rem;
+.hands #left img.row-two {
+  top: 5rem;
+  left: 3rem;
   width: 20rem;
   height: 15rem;
 }
 
-.finger #right img.row-two {
-  top: 26rem;
-  left: 47rem;
+.hands #right img.row-two {
+  top: 5rem;
+  left: 26rem;
   width: 20rem;
   height: 15rem;
 }
 
-.finger #left img.row-three {
-  top: 27rem;
-  left: 23rem;
+.hands #left img.row-three {
+  top: 6rem;
+  left: 2rem;
   width: 23rem;
   height: 14rem;
 }
 
-.finger #right img.row-three {
-  top: 27rem;
-  left: 49rem;
+.hands #right img.row-three {
+  top: 6rem;
+  left: 23rem;
   width: 21rem;
   height: 14rem;
 }
@@ -478,7 +475,7 @@ footer .switch-container {
     transform: translateX(2.8vw);
   }
 
-  .finger {
+  .hands {
     display: none;
   }
 }
@@ -557,7 +554,7 @@ footer .switch-container {
   .switch-container .toggle-switch input:checked + .slider::before {
     transform: translateX(4.8vw);
   }
-  .finger {
+  .hands {
     display: none;
   }
 }
@@ -573,7 +570,7 @@ footer .switch-container {
   #keyboard {
     display: none;
   }
-  .finger {
+  .hands {
     display: none;
   }
 }
