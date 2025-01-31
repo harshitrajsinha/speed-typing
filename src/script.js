@@ -76,10 +76,8 @@ window.addEventListener("load", function () {
       if (!response.ok) {
         throw new Error(`Failed to fetch sentence: ${response.statusText}`);
       }
-      if (
-        response.headers.get("Content-Type") &&
-        response.headers.get("Content-Type").includes("application/json")
-      ) {
+      const contentType = response.headers.get("Content-Type");
+      if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
 
         if (data) {
@@ -161,7 +159,6 @@ window.addEventListener("load", function () {
 
   // function once game is over
   function gameOver(startTime, endTime) {
-    userInputField.removeEventListener("input", handleUserInput);
     const timeTaken = Math.floor((endTime - startTime) / 1000);
     const blinkCursor = document.getElementById("letter-tracker");
     const leftHand = document.getElementById("left");
@@ -174,6 +171,9 @@ window.addEventListener("load", function () {
     }
     if (userInputField) {
       userInputField.disabled = true; // disable input field
+      userInputField.removeEventListener("input", handleUserInput);
+    } else {
+      console.error("user input field is not defined");
     }
     if (blinkCursor) {
       blinkCursor.style.display = "none"; // remove blink cursor
@@ -204,6 +204,7 @@ window.addEventListener("load", function () {
         initialCursorPosTop -
         parseInt(topCursor)
       }px`;
+      console.log("cursor", cursor.style.top);
     }
   }
 
@@ -475,7 +476,7 @@ window.addEventListener("load", function () {
     if (quotesList && sentenceIndex < quotesList.length) {
       charToggle(false); // enable character toggle
       const quoteObj = quotesList[sentenceIndex++];
-      sessionStorage.setItem("sentenceTrack", sentenceIndex);
+      sessionStorage.setItem("sentenceTrack", String(sentenceIndex));
       return quoteObj.quote;
     }
   }
@@ -501,8 +502,10 @@ window.addEventListener("load", function () {
     // disable user input field
     if (userInputField) {
       userInputField.disabled = false;
-      userInputField.value = null;
+      userInputField.value = "";
       userInputField.focus();
+    } else {
+      console.error("user input field is not defined");
     }
 
     // reset test sentence element
@@ -532,7 +535,7 @@ window.addEventListener("load", function () {
       charToggle(true); // disable character toggle
       sentence = FB_SENTENCE; // initialize fallback sentence
       sentenceIndex = 0;
-      sessionStorage.setItem("sentenceTrack", sentenceIndex);
+      sessionStorage.setItem("sentenceTrack", String(sentenceIndex));
       storeSentence(); // try to fetch sentence from server
     }
 
@@ -550,13 +553,14 @@ window.addEventListener("load", function () {
     initialCursorPosTop = parseInt(
       document.getElementById("letter-tracker").getBoundingClientRect().top
     );
+    console.log(initialCursorPosTop);
 
     //get user input
     if (!isAborted) {
       if (userInputField) {
         userInputField.addEventListener("input", handleUserInput);
       } else {
-        console.log("userInputField is null");
+        console.error("user input field is not defined");
       }
     } else {
       console.log("Game is aborted");

@@ -12,8 +12,10 @@
 body {
   height: 100vh;
   width: 100vw;
+  max-width: 1526px;
   background-image: linear-gradient(to bottom right, #ffffff, #c4f5ff);
   padding: 1rem 3rem 1rem 3rem;
+  margin: 0 auto;
 }
 
 main {
@@ -288,7 +290,9 @@ footer .switch-container {
   position: relative;
   display: inline-block;
   width: 4vw;
+  max-width: 61.05px;
   height: 2.1vw;
+  max-height: 32.05px;
   margin-left: 0.5rem;
 }
 
@@ -310,7 +314,9 @@ footer .switch-container {
   content: "";
   position: absolute;
   height: 1.8vw;
+  max-height: 27.475px;
   width: 1.8vw;
+  max-width: 27.475px;
   left: 0.2rem;
   top: 0.2rem;
   background-color: white;
@@ -319,7 +325,8 @@ footer .switch-container {
 }
 
 .switch-container .toggle-switch input:checked + .slider::before {
-  transform: translateX(1.8vw);
+  /* transform: translateX(1.8vw); */
+  transform: translateX(clamp(10px, 1.8vw, 27.475px));
 }
 
 .switch-container .toggle-switch input:checked + .slider.active {
@@ -399,8 +406,9 @@ footer .switch-container {
     font-size: 1.7rem;
     letter-spacing: 0.2rem;
   }
-  /* #words-container #letter-tracker {
-    top: -14px;
+  /* #letter-tracker {
+    position: relative;
+    top: -19px;
   } */
 }
 
