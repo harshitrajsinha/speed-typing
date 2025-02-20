@@ -8,7 +8,6 @@ window.addEventListener("load", function () {
   const SERVER_HEALTH = `https://my-server-raj-sinha.vercel.app`;
   const TIMEOUT_DURATION = 10000;
 
-  let serverStatus = true;
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-input input");
   let wordsContainer = document.getElementById("words-container");
@@ -76,11 +75,9 @@ window.addEventListener("load", function () {
   async function pingInternet() {
     try {
       await fetch(SERVER_HEALTH);
-      serverStatus = true;
       console.log("Online ✅");
       return true;
     } catch {
-      serverStatus = false;
       console.log("Offline ❌");
       return false;
     }
@@ -542,16 +539,20 @@ window.addEventListener("load", function () {
   // store sentence to localStorage from fetch
   async function storeSentence() {
     if (navigator.onLine) {
-      console.log("You are online");
-      pingInternet();
-      if (!serverStatus) {
+      // check internet connection
+      try {
+        isOnline = await pingInternet();
+      } catch (error) {
+        isOnline = error;
+      }
+      if (!isOnline) {
         console.log("Network has not internet connection");
         return;
       }
+      console.log("You are online");
       let toRetry = false;
       if (sessionStorage.getItem("quotes") !== null) {
-        // to fetch new sentences
-        sessionStorage.removeItem("quotes");
+        sessionStorage.removeItem("quotes"); // to fetch new sentences
       }
       do {
         const quote = await fetchSentence();
@@ -572,8 +573,11 @@ window.addEventListener("load", function () {
   function charToggle(toActivate) {
     const charCheckbox = document.querySelector("#switch-char");
     if (charCheckbox) {
-      charCheckbox.querySelector("input").disabled = toActivate; // enable/disable character toggle
+      charCheckbox.querySelector("input").disabled = toActivate; // enable/disable character toggle button
       const charCheckboxSlider = charCheckbox.querySelector("span.slider");
+      if (!charCheckboxSlider) {
+        console.log("slider button does not exists");
+      }
       if (!toActivate) {
         if (charCheckboxSlider.classList.contains("inactive")) {
           charCheckboxSlider.classList.remove("inactive");
@@ -591,12 +595,15 @@ window.addEventListener("load", function () {
 
   // Get sentence from localStorage
   function getSentence() {
-    const quotesList = JSON.parse(sessionStorage.getItem("quotes"));
-    if (quotesList && sentenceIndex < quotesList.length) {
-      charToggle(false); // enable character toggle
-      const quoteObj = quotesList[sentenceIndex++];
-      sessionStorage.setItem("sentenceTrack", String(sentenceIndex));
-      return quoteObj.quote;
+    const storageData = sessionStorage.getItem("quotes");
+    if (storageData) {
+      const quotesList = JSON.parse(storageData);
+      if (quotesList && sentenceIndex < quotesList.length) {
+        charToggle(false); // enable character toggle
+        const quoteObj = quotesList[sentenceIndex++];
+        sessionStorage.setItem("sentenceTrack", String(sentenceIndex));
+        return quoteObj.quote;
+      }
     }
   }
 
@@ -640,27 +647,7 @@ window.addEventListener("load", function () {
     }
   }
 
-  // main function starts here
-  function newGame() {
-    isAborted = false;
-    let sentence;
-
-    // initialize game;
-    startGame(); // will be called for every new game
-
-    // Get sentence
-    sentence = getSentence();
-    if (!sentence) {
-      charToggle(true); // disable character toggle
-      sentence = FB_SENTENCE; // initialize fallback sentence
-      sentenceIndex = 0;
-      sessionStorage.setItem("sentenceTrack", String(sentenceIndex));
-      storeSentence(); // try to fetch sentence from server
-    }
-
-    // convert sentence to individual chars
-    sentenceToWords(sentence);
-
+  function initializeLetterTracker() {
     let currentLetter = document.querySelector("li.current");
     let currentLetterText = currentLetter.innerHTML;
     activeInactiveKeys(currentLetterText.toLocaleLowerCase(), "active");
@@ -676,6 +663,33 @@ window.addEventListener("load", function () {
     initialCursorPosTop = parseInt(
       document.getElementById("letter-tracker").getBoundingClientRect().top
     );
+  }
+
+  function getNewSentence() {
+    let sentence = getSentence();
+    if (!sentence) {
+      charToggle(true); // disable character toggle
+      sentence = FB_SENTENCE; // initialize fallback sentence
+      sentenceIndex = 0;
+      sessionStorage.setItem("sentenceTrack", String(sentenceIndex));
+      storeSentence(); // try to fetch sentence from server (not waiting, as going forward with fallback sentence)
+    }
+    return sentence;
+  }
+
+  // main function starts here
+  function newGame() {
+    isAborted = false;
+
+    // initialize game;
+    startGame(); // will be called for every new game
+
+    // Get sentence
+    let sentence = getNewSentence();
+    // convert sentence to individual chars
+    sentenceToWords(sentence);
+
+    initializeLetterTracker();
 
     //get user input
     if (!isAborted) {
