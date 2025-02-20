@@ -111,7 +111,7 @@ export default function getHands(key) {
       rightHand: ["./public/fingers/right-fingers/space-right.png", "row-two"],
     },
     colon: {
-      leftHand: ["./public/fingers/left-fingers/lshift.png", "row-two"],
+      leftHand: ["./public/fingers/right-fingers/lshift.png", "row-two"],
       rightHand: ["./public/fingers/right-fingers/semi-colon.png", "row-two"],
     },
     smcln: {

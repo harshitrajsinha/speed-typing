@@ -86,52 +86,52 @@ window.addEventListener("load", function () {
     }
   }
 
-  // if ("serviceWorker" in navigator) {
-  //   // First, unregister any existing service workers
-  //   navigator.serviceWorker
-  //     .getRegistrations()
-  //     .then((registrations) => {
-  //       const unregisterPromises = registrations.map((registration) =>
-  //         registration.unregister()
-  //       );
-  //       return Promise.all(unregisterPromises);
-  //     })
-  //     .then(() => {
-  //       // Register new service worker
-  //       return navigator.serviceWorker.register("../service-worker.js", {
-  //         scope: "/",
-  //       });
-  //     })
-  //     .then((registration) => {
-  //       console.log("ServiceWorker registration successful:", registration);
+  if ("serviceWorker" in navigator) {
+    // First, unregister any existing service workers
+    navigator.serviceWorker
+      .getRegistrations()
+      .then((registrations) => {
+        const unregisterPromises = registrations.map((registration) =>
+          registration.unregister()
+        );
+        return Promise.all(unregisterPromises);
+      })
+      .then(() => {
+        // Register new service worker
+        return navigator.serviceWorker.register("./service-worker.js", {
+          scope: "./",
+        });
+      })
+      .then((registration) => {
+        console.log("ServiceWorker registration successful:", registration);
 
-  //       registration.addEventListener("updatefound", () => {
-  //         const newWorker = registration.installing;
-  //         console.log("New service worker state:", newWorker.state);
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+          console.log("New service worker state:", newWorker.state);
 
-  //         newWorker.addEventListener("statechange", () => {
-  //           console.log("Service worker state changed:", newWorker.state);
-  //         });
-  //       });
+          newWorker.addEventListener("statechange", () => {
+            console.log("Service worker state changed:", newWorker.state);
+          });
+        });
 
-  //       // Force the page to reload to ensure the new service worker takes control
-  //       //window.location.reload();
-  //     })
-  //     .catch((error) => {
-  //       console.error("ServiceWorker registration failed:", error);
-  //     });
-  // }
+        // Force the page to reload to ensure the new service worker takes control
+        //window.location.reload();
+      })
+      .catch((error) => {
+        console.error("ServiceWorker registration failed:", error);
+      });
+  }
 
-  // if ("serviceWorker" in navigator) {
-  //   navigator.serviceWorker.getRegistration().then((registration) => {
-  //     if (registration) {
-  //       console.log("Service Worker is registered:", registration);
-  //       console.log("Service Worker state:", registration.active?.state);
-  //     } else {
-  //       console.log("No Service Worker is registered");
-  //     }
-  //   });
-  // }
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistration().then((registration) => {
+      if (registration) {
+        console.log("Service Worker is registered:", registration);
+        console.log("Service Worker state:", registration.active?.state);
+      } else {
+        console.log("No Service Worker is registered");
+      }
+    });
+  }
 
   navigator.storage.estimate().then((estimate) => {
     console.log(`Using ${estimate.usage} out of ${estimate.quota} bytes`);
