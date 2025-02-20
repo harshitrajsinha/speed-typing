@@ -98,7 +98,7 @@ window.addEventListener("load", function () {
       })
       .then(() => {
         // Register new service worker
-        return navigator.serviceWorker.register("../service-worker.js", {
+        return navigator.serviceWorker.register("./service-worker.js", {
           scope: "./",
         });
       })
