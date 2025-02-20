@@ -5,16 +5,20 @@ window.addEventListener("load", function () {
 
   const FB_SENTENCE = `type this line to find out how many words per minute or wpm you can type`; // fallback sentence in case quotes is not fetched
   const SERVER_API_URL = `https://my-server-raj-sinha.vercel.app/api/quotes/v1/quotes`;
+  const SERVER_HEALTH = `https://my-server-raj-sinha.vercel.app`;
   const TIMEOUT_DURATION = 10000;
 
+  let serverStatus = true;
   let noTimesCalled = 0; // no of times API request is made
   let userInputField = document.querySelector("div#user-input input");
   let wordsContainer = document.getElementById("words-container");
   let audio = document.getElementById("windy-hill-music");
   let isCharAllowed = true;
+  let networkMessageId = null;
   let isFirstCharTyped;
   let startTime, initialCursorPosLeft, initialCursorPosTop, endTime;
   let isAborted = false;
+  const networkMessageElem = this.document.getElementById("network-message");
   let sentenceIndex = 0; // keeps track of current sentence fetched from localStorage
   // const leftCursor = window
   //   .getComputedStyle(document.getElementById("letter-tracker"))
@@ -28,6 +32,110 @@ window.addEventListener("load", function () {
   } else {
     sessionStorage.setItem("sentenceTrack", sentenceIndex);
   }
+
+  function toggleNetworkMessage(networkMessage) {
+    if (networkMessageElem) {
+      networkMessageElem.textContent = `${networkMessage}`;
+      if (networkMessageElem.classList.contains("slide-up"))
+        networkMessageElem.classList.remove("slide-up");
+      networkMessageElem.classList.add("slide-down");
+      networkMessageElem.style.top = "1%";
+      if (!networkMessageId) {
+        networkMessageId = setTimeout(() => {
+          if (networkMessageElem.classList.contains("slide-down"))
+            networkMessageElem.classList.remove("slide-down");
+          networkMessageElem.classList.add("slide-up");
+          networkMessageElem.style.top = "-10%";
+          networkMessageId = null;
+        }, 4500);
+      }
+    }
+  }
+
+  window.addEventListener("online", async () => {
+    console.log("onlineeee");
+    let isOnline = false;
+    try {
+      isOnline = await pingInternet();
+    } catch (error) {
+      isOnline = error;
+    }
+
+    if (!isOnline) {
+      toggleNetworkMessage("No Internet access!");
+    } else {
+      toggleNetworkMessage("Back Online!");
+    }
+  });
+
+  window.addEventListener("offline", () => {
+    toggleNetworkMessage("You're Offline!");
+    console.log("Lost connection!");
+  });
+
+  async function pingInternet() {
+    try {
+      await fetch(SERVER_HEALTH);
+      serverStatus = true;
+      console.log("Online ✅");
+      return true;
+    } catch {
+      serverStatus = false;
+      console.log("Offline ❌");
+      return false;
+    }
+  }
+
+  // if ("serviceWorker" in navigator) {
+  //   // First, unregister any existing service workers
+  //   navigator.serviceWorker
+  //     .getRegistrations()
+  //     .then((registrations) => {
+  //       const unregisterPromises = registrations.map((registration) =>
+  //         registration.unregister()
+  //       );
+  //       return Promise.all(unregisterPromises);
+  //     })
+  //     .then(() => {
+  //       // Register new service worker
+  //       return navigator.serviceWorker.register("../service-worker.js", {
+  //         scope: "/",
+  //       });
+  //     })
+  //     .then((registration) => {
+  //       console.log("ServiceWorker registration successful:", registration);
+
+  //       registration.addEventListener("updatefound", () => {
+  //         const newWorker = registration.installing;
+  //         console.log("New service worker state:", newWorker.state);
+
+  //         newWorker.addEventListener("statechange", () => {
+  //           console.log("Service worker state changed:", newWorker.state);
+  //         });
+  //       });
+
+  //       // Force the page to reload to ensure the new service worker takes control
+  //       //window.location.reload();
+  //     })
+  //     .catch((error) => {
+  //       console.error("ServiceWorker registration failed:", error);
+  //     });
+  // }
+
+  // if ("serviceWorker" in navigator) {
+  //   navigator.serviceWorker.getRegistration().then((registration) => {
+  //     if (registration) {
+  //       console.log("Service Worker is registered:", registration);
+  //       console.log("Service Worker state:", registration.active?.state);
+  //     } else {
+  //       console.log("No Service Worker is registered");
+  //     }
+  //   });
+  // }
+
+  navigator.storage.estimate().then((estimate) => {
+    console.log(`Using ${estimate.usage} out of ${estimate.quota} bytes`);
+  });
 
   // functionality for toggle switch
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -89,7 +197,9 @@ window.addEventListener("load", function () {
         throw new Error("Response is not JSON");
       }
     } catch (error) {
-      if (error.name === "AbortError") {
+      if (error.name === "TypeError" && error.message === "Failed to fetch") {
+        return { status: "offline", message: "No internet connection" };
+      } else if (error.name === "AbortError") {
         console.log("Request timed out");
         return null;
       } else {
@@ -204,7 +314,6 @@ window.addEventListener("load", function () {
         initialCursorPosTop -
         parseInt(topCursor)
       }px`;
-      console.log("cursor", cursor.style.top);
     }
   }
 
@@ -432,21 +541,31 @@ window.addEventListener("load", function () {
 
   // store sentence to localStorage from fetch
   async function storeSentence() {
-    let toRetry = false;
-    if (sessionStorage.getItem("quotes") !== null) {
-      // to fetch new sentences
-      sessionStorage.removeItem("quotes");
-    }
-    do {
-      const quote = await fetchSentence();
-      if (quote) {
-        toRetry = false;
-        sessionStorage.setItem("quotes", JSON.stringify(quote));
-      } else {
-        toRetry = true;
-        noTimesCalled++;
+    if (navigator.onLine) {
+      console.log("You are online");
+      pingInternet();
+      if (!serverStatus) {
+        console.log("Network has not internet connection");
+        return;
       }
-    } while (toRetry && noTimesCalled < 4); // limit api call and retry fetch
+      let toRetry = false;
+      if (sessionStorage.getItem("quotes") !== null) {
+        // to fetch new sentences
+        sessionStorage.removeItem("quotes");
+      }
+      do {
+        const quote = await fetchSentence();
+        if (quote) {
+          toRetry = false;
+          sessionStorage.setItem("quotes", JSON.stringify(quote));
+        } else {
+          toRetry = true;
+          noTimesCalled++;
+        }
+      } while (toRetry && noTimesCalled < 4); // limit api call and retry fetch
+    } else {
+      console.log("No internet connection");
+    }
   }
 
   // toggle 'character' switch button
@@ -545,6 +664,10 @@ window.addEventListener("load", function () {
     let currentLetter = document.querySelector("li.current");
     let currentLetterText = currentLetter.innerHTML;
     activeInactiveKeys(currentLetterText.toLocaleLowerCase(), "active");
+    wordsContainer.firstElementChild.style.top = `${
+      document.getElementById("0").getBoundingClientRect().top -
+      document.getElementById("letter-tracker").getBoundingClientRect().top
+    }px`;
 
     // initialize cursor position
     initialCursorPosLeft = parseInt(
@@ -553,7 +676,6 @@ window.addEventListener("load", function () {
     initialCursorPosTop = parseInt(
       document.getElementById("letter-tracker").getBoundingClientRect().top
     );
-    console.log(initialCursorPosTop);
 
     //get user input
     if (!isAborted) {
