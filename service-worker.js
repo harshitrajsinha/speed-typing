@@ -6,7 +6,6 @@ const urlsToCache = [
   "./src/styles.css",
   "./src/script.js",
   "./manifest.json",
-
   "./public/windy-hill.mp3",
   "./public/apple-touch-icon.png",
   "./public/favicon-16x16.png",
@@ -51,6 +50,26 @@ const urlsToCache = [
   "./public/fingers/right-fingers/qmark.png",
 ];
 
+// self.addEventListener("install", (event) => {
+//   event.waitUntil(
+//     caches.open(CACHE_NAME).then((cache) => {
+//       return cache.addAll(urlsToCache);
+//     })
+//   );
+// });
+
+// self.addEventListener("fetch", (event) => {
+//   event.respondWith(
+//     caches.match(event.request).then((response) => {
+//       if (response) {
+//         return response;
+//       }
+//       return fetch(event.request);
+//     })
+//   );
+// });
+
+// ✅ Install and Cache All Required Files
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -59,13 +78,61 @@ self.addEventListener("install", (event) => {
   );
 });
 
+// ✅ Fetch Handler (Serves Cached Resources)
 self.addEventListener("fetch", (event) => {
+  const requestUrl = event.request.url;
+
+  // ✅ Cache Google Fonts (CSS + Font files)
+  if (
+    requestUrl.includes("fonts.googleapis.com") ||
+    requestUrl.includes("fonts.gstatic.com")
+  ) {
+    event.respondWith(
+      caches.open("google-fonts-cache").then((cache) => {
+        return fetch(event.request)
+          .then((response) => {
+            cache.put(event.request, response.clone());
+            return response;
+          })
+          .catch(() => caches.match(event.request)); // Serve from cache if offline
+      })
+    );
+    return;
+  }
+
+  // ✅ Serve Cached Assets for Everything Else
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request);
+    caches.match(event.request).then((cachedResponse) => {
+      return (
+        cachedResponse ||
+        fetch(event.request)
+          .then((response) => {
+            return caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, response.clone()); // Store the fetched response in cache
+              return response;
+            });
+          })
+          .catch(() => {
+            if (event.request.url.endsWith(".mp3")) {
+              return caches.match("./public/windy-hill.mp3"); // Serve cached MP3 if offline
+            }
+          })
+      );
+    })
+  );
+});
+
+// ✅ Cleanup Old Caches (on Service Worker Activation)
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter(
+            (cache) => cache !== CACHE_NAME && cache !== "google-fonts-cache"
+          )
+          .map((cache) => caches.delete(cache))
+      );
     })
   );
 });
