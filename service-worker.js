@@ -1,12 +1,12 @@
 const CACHE_NAME = "speedtyping-cache-v1";
 const urlsToCache = [
-  "./",
-  "./index.html",
-  "./src/hands.js",
-  "./src/styles.css",
-  "./src/script.js",
-  "./manifest.json",
-  "./public",
+  "/",
+  "/index.html",
+  "/src/hands.js",
+  "/src/styles.css",
+  "/src/script.js",
+  "/manifest.json",
+  "/public/",
 ];
 
 self.addEventListener("install", (event) => {
