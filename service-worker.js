@@ -1,4 +1,5 @@
-const CACHE_NAME = "speedtyping-cache-v1";
+const CACHE_NAME = "speedtyping-cache-v3";
+const GOOGLE_FONTS_CACHE = "google-fonts-cache";
 const urlsToCache = [
   "./",
   "./index.html",
@@ -69,7 +70,7 @@ const urlsToCache = [
 //   );
 // });
 
-// ✅ Install and Cache All Required Files
+// ✅ Install and Cache Essential Files
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -78,20 +79,31 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// ✅ Fetch Handler (Serves Cached Resources)
+// ✅ Fetch Event - Serve Cached Files and Cache Google Fonts
 self.addEventListener("fetch", (event) => {
   const requestUrl = event.request.url;
 
-  // ✅ Cache Google Fonts (CSS + Font files)
+  // ✅ Ignore 'chrome-extension://' requests to avoid errors
+  if (requestUrl.startsWith("chrome-extension://")) return;
+
+  // ✅ Cache Google Fonts CSS and Font Files
   if (
     requestUrl.includes("fonts.googleapis.com") ||
     requestUrl.includes("fonts.gstatic.com")
   ) {
     event.respondWith(
-      caches.open("google-fonts-cache").then((cache) => {
+      caches.open(GOOGLE_FONTS_CACHE).then((cache) => {
         return fetch(event.request)
           .then((response) => {
-            cache.put(event.request, response.clone());
+            // ✅ Only cache successful responses
+            if (
+              !response ||
+              response.status !== 200 ||
+              response.type !== "basic"
+            ) {
+              return response;
+            }
+            cache.put(event.request, response.clone()); // Cache the Google Fonts response
             return response;
           })
           .catch(() => caches.match(event.request)); // Serve from cache if offline
@@ -107,14 +119,23 @@ self.addEventListener("fetch", (event) => {
         cachedResponse ||
         fetch(event.request)
           .then((response) => {
+            // ✅ Only cache successful responses
+            if (
+              !response ||
+              response.status !== 200 ||
+              response.type !== "basic"
+            ) {
+              return response;
+            }
             return caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, response.clone()); // Store the fetched response in cache
+              cache.put(event.request, response.clone());
               return response;
             });
           })
           .catch(() => {
+            // ✅ Serve Cached MP3 if Offline
             if (event.request.url.endsWith(".mp3")) {
-              return caches.match("./public/windy-hill.mp3"); // Serve cached MP3 if offline
+              return caches.match("./public/windy-hill.mp3");
             }
           })
       );
@@ -129,7 +150,7 @@ self.addEventListener("activate", (event) => {
       return Promise.all(
         cacheNames
           .filter(
-            (cache) => cache !== CACHE_NAME && cache !== "google-fonts-cache"
+            (cache) => cache !== CACHE_NAME && cache !== GOOGLE_FONTS_CACHE
           )
           .map((cache) => caches.delete(cache))
       );
