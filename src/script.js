@@ -539,6 +539,7 @@ window.addEventListener("load", function () {
   // store sentence to localStorage from fetch
   async function storeSentence() {
     if (navigator.onLine) {
+      let isOnline = false;
       // check internet connection
       try {
         isOnline = await pingInternet();
