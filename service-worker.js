@@ -1,5 +1,5 @@
 const CACHE_NAME = "speedtyping-cache-v3";
-const GOOGLE_FONTS_CACHE = "google-fonts-cache";
+const FONT_CACHE_NAME = "speedtyping-fonts-v1";
 const urlsToCache = [
   "./",
   "./index.html",
@@ -55,21 +55,60 @@ const urlsToCache = [
   "https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital,wght@0,700;1,700&display=swap",
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    })
+// Check if a request is for a font file
+function isFontFile(url) {
+  return (
+    url.includes("fonts.gstatic.com") &&
+    (url.endsWith(".woff2") ||
+      url.endsWith(".woff") ||
+      url.endsWith(".ttf") ||
+      url.endsWith(".otf"))
   );
-});
+}
+
+// Check if request is for Google Fonts CSS
+function isGoogleFontsCSS(url) {
+  return url.includes("fonts.googleapis.com/css");
+}
 
 self.addEventListener("fetch", (event) => {
+  // Handle font files and CSS separately
+  if (isFontFile(event.request.url) || isGoogleFontsCSS(event.request.url)) {
+    event.respondWith(
+      caches.open(FONT_CACHE_NAME).then((cache) => {
+        return cache.match(event.request).then((response) => {
+          if (response) {
+            return response;
+          }
+
+          return fetch(event.request).then((networkResponse) => {
+            // Only cache successful responses
+            if (networkResponse.ok) {
+              cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // Handle all other requests
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
         return response;
       }
       return fetch(event.request);
+    })
+  );
+});
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(urlsToCache);
     })
   );
 });
