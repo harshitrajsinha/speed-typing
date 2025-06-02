@@ -627,3 +627,15 @@ footer .switch-container {
     display: none;
   }
 }
+
+/* {
+  'text': "test your speed in words per minute by typing this sentence";
+  body: background-image: linear-gradient(to bottom right, #ffffff, #d3ffd6);
+  logo: {
+    background: linear-gradient(to right, #30dae3 0%, #1bd484 21%, #57b479db 47%, #0bcf56 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  keyboard: linear-gradient(to right, #2cffd4 50%, #1deb5d 80%);
+  key -> 50% -> background-color: #67bcf5;
+} */

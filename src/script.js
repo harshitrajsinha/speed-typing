@@ -19,9 +19,8 @@ window.addEventListener("load", function () {
   let isAborted = false;
   const networkMessageElem = this.document.getElementById("network-message");
   let sentenceIndex = 0; // keeps track of current sentence fetched from localStorage
-  // const leftCursor = window
-  //   .getComputedStyle(document.getElementById("letter-tracker"))
-  //   .getPropertyValue("left");
+  let isOnline = false;
+
   const topCursor = window
     .getComputedStyle(document.getElementById("letter-tracker"))
     .getPropertyValue("top");
@@ -52,8 +51,6 @@ window.addEventListener("load", function () {
   }
 
   window.addEventListener("online", async () => {
-    console.log("onlineeee");
-    let isOnline = false;
     try {
       isOnline = await pingInternet();
     } catch (error) {
@@ -82,57 +79,6 @@ window.addEventListener("load", function () {
       return false;
     }
   }
-
-  if ("serviceWorker" in navigator) {
-    // First, unregister any existing service workers
-    navigator.serviceWorker
-      .getRegistrations()
-      .then((registrations) => {
-        const unregisterPromises = registrations.map((registration) =>
-          registration.unregister()
-        );
-        return Promise.all(unregisterPromises);
-      })
-      .then(() => {
-        // Register new service worker
-        return navigator.serviceWorker.register("./service-worker.js", {
-          scope: "./",
-        });
-      })
-      .then((registration) => {
-        console.log("ServiceWorker registration successful:", registration);
-
-        registration.addEventListener("updatefound", () => {
-          const newWorker = registration.installing;
-          console.log("New service worker state:", newWorker.state);
-
-          newWorker.addEventListener("statechange", () => {
-            console.log("Service worker state changed:", newWorker.state);
-          });
-        });
-
-        // Force the page to reload to ensure the new service worker takes control
-        //window.location.reload();
-      })
-      .catch((error) => {
-        console.error("ServiceWorker registration failed:", error);
-      });
-  }
-
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistration().then((registration) => {
-      if (registration) {
-        console.log("Service Worker is registered:", registration);
-        console.log("Service Worker state:", registration.active?.state);
-      } else {
-        console.log("No Service Worker is registered");
-      }
-    });
-  }
-
-  navigator.storage.estimate().then((estimate) => {
-    console.log(`Using ${estimate.usage} out of ${estimate.quota} bytes`);
-  });
 
   // functionality for toggle switch
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');
